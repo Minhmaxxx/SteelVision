@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steelvision"
+version = "0.1.0"
+description = "Metal surface defect inspection: YOLO detection + PatchCore anomaly detection, QC metrics (escape/overkill), FastAPI service and dashboard."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "SteelVision" }]
+dependencies = [
+    "numpy>=1.26,<3",
+    "opencv-python>=4.9",
+    "pillow>=10",
+    "pyyaml>=6",
+    "tqdm>=4.66",
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "imagehash>=4.3",
+    "kagglehub>=0.2",
+    "ultralytics>=8.3",
+    "anomalib>=2.0,<3",
+    "albumentations>=1.4",
+    "onnxruntime>=1.17",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+    "streamlit>=1.35",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+    "pre-commit>=3.7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

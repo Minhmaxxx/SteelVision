@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Large artifacts (weights, metrics, experiment logs live outside git)
+data/
+runs/
+wandb/
+mlruns/
+*.pt
+*.onnx
+*.openvino
+
+# Allow small committed samples for docs/tests
+!data/samples/
+!data/samples/**
+
+# Environment / IDE
+.env
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

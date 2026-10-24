@@ -34,11 +34,12 @@ Work in progress — results tables are filled as experiments land (tracked in
 | Stage | Status |
 |---|---|
 | Repo + CI + data pipeline | ✅ |
-| Public data (NEU-DET, GC10-DET, MVTec AD) | 🚧 |
-| YOLOv8 baseline + ablations (Kaggle/Colab) | ⬜ |
+| Public data (NEU-DET, GC10-DET) — converted, deduped, split | ✅ |
+| MVTec AD (metal_nut) download | ⬜ Phase 3 |
+| YOLOv8 baseline + ablations (Kaggle/Colab) | ⬜ notebooks ready |
 | PatchCore anomaly detection | ⬜ |
 | QC metrics + robustness | ⬜ |
-| Self-captured dataset (300–500 images) | ⬜ |
+| Self-captured dataset (protocol + guides ready) | ⬜ |
 | ONNX CPU optimization | ⬜ |
 | FastAPI + Docker + dashboard | ⬜ |
 

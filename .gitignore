@@ -20,10 +20,11 @@ mlruns/
 !data/samples/
 !data/samples/**
 
-# Environment / IDE
+# Environment / IDE / assistant
 .env
 .vscode/
 .idea/
+.zcode/
 
 # OS
 Thumbs.db

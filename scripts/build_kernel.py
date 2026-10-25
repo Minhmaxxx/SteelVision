@@ -40,6 +40,9 @@ def zip_source() -> bytes:
         for f in sorted(Path("src/steelvision").rglob("*")):
             if f.is_file() and "__pycache__" not in f.parts and f.suffix != ".pyc":
                 zf.write(f, Path("steelvision") / f.relative_to("src/steelvision"))
+        cfg = Path("configs/datasets.yaml")
+        if cfg.exists():
+            zf.write(cfg, "configs/datasets.yaml")
     return buf.getvalue()
 
 

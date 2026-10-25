@@ -25,6 +25,12 @@ DIST = Path("notebooks/dist")
 DEFAULT_RUN_NAME = "yolov8n-neu-det-baseline"
 DEFAULT_IMGSZ = 640
 
+# dataset name in the repo pipeline -> Kaggle dataset slug mounted at /kaggle/input
+DATASET_MOUNTS = {
+    "neu_det": "neu-surface-defect-database",
+    "gc10": "gc10det",
+}
+
 CELL_TEMPLATE = """\
 import base64
 import io
@@ -66,6 +72,7 @@ def main() -> None:
         help="extra model.train() kwarg inserted into the kernel, e.g. mosaic=0.0",
     )
     parser.add_argument("--model", default="yolov8n.pt", help="checkpoint passed to YOLO()")
+    parser.add_argument("--dataset", default="neu_det", choices=sorted(DATASET_MOUNTS))
     args = parser.parse_args()
 
     data = zip_source()
@@ -99,6 +106,14 @@ def main() -> None:
         n = text.count("yolov8n.pt")
         assert n == 1, f"expected 1 YOLO checkpoint occurrence, found {n}"
         text = text.replace("yolov8n.pt", args.model)
+    if args.dataset != "neu_det":
+        n = text.count("neu_det")
+        assert n == 3, f"expected 3 dataset-name occurrences, found {n}"
+        text = text.replace("neu_det", args.dataset)
+        mount = DATASET_MOUNTS["neu_det"]
+        n = text.count(mount)
+        assert n == 1, f"expected 1 dataset-mount occurrence, found {n}"
+        text = text.replace(mount, DATASET_MOUNTS[args.dataset])
     nb = json.loads(text)
 
     DIST.mkdir(exist_ok=True)

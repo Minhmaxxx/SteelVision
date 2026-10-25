@@ -108,7 +108,31 @@ texture → tắt mosaic sẽ giúp các lớp texture.
 - Bài học chung: augmentation mặc định của Ultralytics sinh ra cho COCO — với
   dataset công nghiệp nhỏ, lưới augmentation cần thử lại từ đầu.
 
-## 4. Ablation #3: model size n → s (yolov8s, nền mosaic=0.0) — đang chạy
+## 4. Ablation #3: model size n → s (yolov8s, nền mosaic=0.0) (run 2026-10-25, kernel v10)
+
+| Chỉ số | yolov8n+mosaic0 | yolov8s+mosaic0 | Δ |
+|---|---|---|---|
+| mAP50 | **0.784** | 0.776 | −0.8 |
+| mAP50-95 | **0.456** | 0.437 | −1.8 |
+| crazing AP50 | **0.476** | 0.445 | −3.0 |
+| scratches AP50 | **0.942** | 0.910 | −3.2 |
+| patches AP50 | 0.905 | **0.919** | +1.4 |
+
+**Kết luận:** giả thuyết bị phủ nhận — 1.264 ảnh train không nuôi được mô hình
+~2.5× tham số (dấu hiệu overfit). **Yolov8n giữ nguyên.**
+
+## 5. Bảng tổng hợp ablation (điều kiện Phase 2: ≥3 thay đổi — ĐẠT)
+
+| Run | Thay đổi | mAP50 | mAP50-95 | crazing | Kết luận |
+|---|---|---|---|---|---|
+| v7 baseline | — (yolov8n, 640) | 0.766 | 0.450 | 0.432 | mốc so sánh |
+| v8 | imgsz → 1024 | 0.750 | 0.415 | 0.374 | ❌ khuyếch đại nhiễu |
+| v9 | mosaic → 0.0 | **0.784** | **0.456** | **0.476** | ✅ **chốt làm chuẩn** |
+| v10 | model → yolov8s | 0.776 | 0.437 | 0.445 | ❌ overfit dataset nhỏ |
+
+**Cấu hình detector cuối Phase 2: YOLOv8n + imgsz 640 + mosaic=0.0 → mAP50 0.784.**
+
+## 6. GC10-DET (dataset thứ 2) — đang chạy với cấu hình chuẩn
 
 ## 2. Nhật ký hạ tầng huấn luyện (bài học Kaggle)
 

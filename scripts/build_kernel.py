@@ -65,6 +65,7 @@ def main() -> None:
         default=[],
         help="extra model.train() kwarg inserted into the kernel, e.g. mosaic=0.0",
     )
+    parser.add_argument("--model", default="yolov8n.pt", help="checkpoint passed to YOLO()")
     args = parser.parse_args()
 
     data = zip_source()
@@ -94,6 +95,10 @@ def main() -> None:
         # train name, val name, zip filename, FileLink — all follow the run name.
         assert n == 4, f"expected 4 run-name occurrences in template, found {n}"
         text = text.replace(DEFAULT_RUN_NAME, args.run_name)
+    if args.model != "yolov8n.pt":
+        n = text.count("yolov8n.pt")
+        assert n == 1, f"expected 1 YOLO checkpoint occurrence, found {n}"
+        text = text.replace("yolov8n.pt", args.model)
     nb = json.loads(text)
 
     DIST.mkdir(exist_ok=True)

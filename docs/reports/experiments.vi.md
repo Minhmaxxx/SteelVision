@@ -80,6 +80,36 @@ trùng lặp, convert sạch, không rò rỉ val/test).
   sẵn) — chỉ cân nhắc cho dữ liệu tự chụp độ phân giải cao ở Phase 5.
 - imgsz 640 giữ nguyên làm cấu hình chuẩn.
 
+## 3. Ablation #2: tắt mosaic (mosaic=0.0) (run 2026-10-25, kernel v9)
+
+**Giả thuyết:** NEU-DET nhỏ (1.264 ảnh train), mosaic ghép 4 ảnh phá ngữ cảnh
+texture → tắt mosaic sẽ giúp các lớp texture.
+
+### So sánh với baseline (cùng imgsz 640)
+
+| Chỉ số | baseline | mosaic=0.0 | Δ |
+|---|---|---|---|
+| **mAP50** | 0.766 | **0.784** | **+1.7** |
+| mAP50-95 | 0.450 | 0.456 | +0.5 |
+| Precision | 0.732 | 0.742 | +1.0 |
+| Recall | 0.709 | 0.735 | +2.6 |
+| **crazing AP50** | 0.432 | **0.476** | **+4.4** |
+| scratches AP50 | 0.909 | 0.942 | +3.3 |
+| patches AP50 | 0.878 | 0.905 | +2.7 |
+| inclusion AP50 | 0.868 | 0.855 | −1.3 |
+
+### Kết luận
+
+- **Giả thuyết được xác nhận**: tắt mosaic cải thiện tổng thể, mạnh nhất ở
+  crazing (+4.4) và scratches (+3.3) — đúng nhóm lớp nhạy texture. Chỉ inclusion
+  giảm nhẹ (−1.3).
+- **Cấu hình chuẩn mới: imgsz 640 + mosaic=0.0** (mAP50 0.784). Các ablation
+  sau xếp chồng trên cấu hình này.
+- Bài học chung: augmentation mặc định của Ultralytics sinh ra cho COCO — với
+  dataset công nghiệp nhỏ, lưới augmentation cần thử lại từ đầu.
+
+## 4. Ablation #3: model size n → s (yolov8s, nền mosaic=0.0) — đang chạy
+
 ## 2. Nhật ký hạ tầng huấn luyện (bài học Kaggle)
 
 Xem `memory`/phiên 2026-10-25: 4 lỗi batch-session đã sửa (GPU flag `machine_shape`,

@@ -8,7 +8,7 @@
   "enable_gpu": true,
   "machine_shape": "NvidiaTeslaT4",
   "enable_internet": true,
-  "dataset_sources": [],
+  "dataset_sources": ["kaustubhdikshit/neu-surface-defect-database", "alex000kim/gc10det"],
   "kernel_sources": [],
   "competition_sources": [],
   "model_sources": []

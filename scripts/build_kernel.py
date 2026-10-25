@@ -59,6 +59,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--imgsz", type=int, default=DEFAULT_IMGSZ)
     parser.add_argument("--run-name", default=DEFAULT_RUN_NAME)
+    parser.add_argument(
+        "--extra-train-arg",
+        action="append",
+        default=[],
+        help="extra model.train() kwarg inserted into the kernel, e.g. mosaic=0.0",
+    )
     args = parser.parse_args()
 
     data = zip_source()
@@ -78,6 +84,11 @@ def main() -> None:
     if args.imgsz != DEFAULT_IMGSZ:
         assert text.count("imgsz=640,") == 1, "template train cell changed; update --imgsz mapping"
         text = text.replace("imgsz=640,", f"imgsz={args.imgsz},")
+    if args.extra_train_arg:
+        anchor = f"imgsz={args.imgsz},"
+        assert text.count(anchor) == 1
+        extras = ",\\n    ".join(args.extra_train_arg)  # JSON-escaped newline
+        text = text.replace(anchor, f"{anchor}{extras},")
     if args.run_name != DEFAULT_RUN_NAME:
         n = text.count(DEFAULT_RUN_NAME)
         # train name, val name, zip filename, FileLink — all follow the run name.

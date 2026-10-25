@@ -49,12 +49,36 @@ trùng lặp, convert sạch, không rò rỉ val/test).
 
 ### Hệ quả cho ablation (mỗi lần đổi 1 yếu tố)
 
-1. **imgsz 640 → 1024** *(ưu tiên đầu tiên — lý do trực tiếp từ crazing)*:
-   lỗi texture mịn cần độ phân giải cao hơn; đo xem crazing nhích bao nhiêu.
-2. Augmentation: tắt mosaic/mixup (mặc định bật) — NEU-DET nhỏ, mosaic có thể
+1. ~~imgsz 640 → 1024~~ → **đã chạy, kết quả âm — xem mục 2**.
+2. Augmentation: tắt mosaic (mixup mặc định đã tắt) — NEU-DET nhỏ, mosaic có thể
    phá ngữ cảnh texture.
 3. Model size n → s: thêm ~2.5× tham số, kiểm tra tăng thực.
 4. GC10-DET: dataset thứ 2 + kiểm thử khác miền (Phase 4).
+
+## 2. Ablation #1: imgsz 640 → 1024 (run 2026-10-25, kernel v8)
+
+**Giả thuyết:** crazing là lỗi texture mịn → tăng độ phân giải đầu vào sẽ giúp.
+
+### So sánh trên cùng tập test
+
+| Chỉ số | 640 (baseline) | 1024 | Δ |
+|---|---|---|---|
+| mAP50 | **0.766** | 0.750 | −0.016 |
+| mAP50-95 | **0.450** | 0.415 | −0.035 |
+| Precision | **0.732** | 0.637 | −0.095 |
+| Recall | 0.709 | **0.762** | +0.053 |
+| crazing AP50 | **0.432** | 0.374 | −0.058 |
+
+### Kết luận
+
+- **Giả thuyết bị phủ nhận**: mAP50 giảm 1.6 điểm, crazing còn giảm 5.8 điểm.
+- Giải thích hợp lý: ảnh NEU gốc chỉ 200×200 — phóng lên 1024 **không tạo thêm
+  thông tin**, chỉ khuyếch đại nhiễu nén/quét khiến nền trông giống lỗi →
+  precision rơi mạnh (−9.5) dù recall tăng (+5.3): mô hình "báo động giả" nhiều hơn.
+- Hệ quả: (a) vấn đề của crazing **không nằm ở độ phân giải** mà ở tính chất
+  texture + biên nhãn mơ hồ; (b) SAHI/tiling **không áp dụng cho NEU** (ảnh nhỏ
+  sẵn) — chỉ cân nhắc cho dữ liệu tự chụp độ phân giải cao ở Phase 5.
+- imgsz 640 giữ nguyên làm cấu hình chuẩn.
 
 ## 2. Nhật ký hạ tầng huấn luyện (bài học Kaggle)
 

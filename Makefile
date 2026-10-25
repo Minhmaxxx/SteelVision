@@ -30,5 +30,5 @@ lint:
 	ruff check src tests
 
 kaggle-push:
-	python scripts/make_kernel_zip.py
-	.venv/Scripts/kaggle.exe kernels push -p notebooks --accelerator NvidiaTeslaT4 --timeout 7200
+	python scripts/build_kernel.py
+	.venv/Scripts/kaggle.exe kernels push -p notebooks/dist --accelerator NvidiaTeslaT4 --timeout 7200

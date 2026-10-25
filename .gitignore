@@ -32,3 +32,4 @@ Thumbs.db
 
 # Generated at push time, uploaded to Kaggle kernels
 notebooks/steelvision_src.zip
+notebooks/dist/

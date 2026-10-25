@@ -29,3 +29,6 @@ mlruns/
 # OS
 Thumbs.db
 .DS_Store
+
+# Generated at push time, uploaded to Kaggle kernels
+notebooks/steelvision_src.zip

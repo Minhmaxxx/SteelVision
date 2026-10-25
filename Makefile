@@ -8,6 +8,7 @@ help:
 	@echo "  make serve  - run the FastAPI inspection service locally"
 	@echo "  make test   - run pytest"
 	@echo "  make lint   - ruff check"
+	@echo "  make kaggle-push - zip src/steelvision and push/run the Kaggle notebook (needs KAGGLE_API_TOKEN)"
 
 data:
 	python -m steelvision.data.prepare --all
@@ -29,4 +30,5 @@ lint:
 	ruff check src tests
 
 kaggle-push:
-	python -c "import zipfile; from pathlib import Path; exec(open(chr(60)+chr(62)).read())" 2>/dev/null || true
+	python scripts/make_kernel_zip.py
+	.venv/Scripts/kaggle.exe kernels push -p notebooks --accelerator NvidiaTeslaT4 --timeout 7200

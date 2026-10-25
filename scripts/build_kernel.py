@@ -80,7 +80,8 @@ def main() -> None:
         text = text.replace("imgsz=640,", f"imgsz={args.imgsz},")
     if args.run_name != DEFAULT_RUN_NAME:
         n = text.count(DEFAULT_RUN_NAME)
-        assert n == 2, f"expected 2 run-name occurrences in template, found {n}"
+        # train name, val name, zip filename, FileLink — all follow the run name.
+        assert n == 4, f"expected 4 run-name occurrences in template, found {n}"
         text = text.replace(DEFAULT_RUN_NAME, args.run_name)
     nb = json.loads(text)
 

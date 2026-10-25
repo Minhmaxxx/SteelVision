@@ -79,9 +79,11 @@ Training runs on Kaggle/Colab GPUs — see `notebooks/`.
 
 ## Documentation
 
+- `docs/journal.vi.md` — project journal: what was done, decisions, lessons (Vietnamese)
 - `docs/labeling-guide.vi.md` — defect definitions and labeling rules (Vietnamese)
 - `docs/capture-protocol.vi.md` — how the self-captured dataset is collected
 - `docs/reports/` — experiment, QC and robustness reports
+- `docs/dataset-card.md` — dataset sources, licenses, reproduction
 - `docs/model-card.md` — model card
 - `SteelVision_Project_Overview.md` — original project brief (Vietnamese)
 

@@ -125,6 +125,40 @@ treo âm thầm.
 Đánh giá QC (`escape rate`, `overkill rate`, đường đánh đổi ngưỡng) + kiểm thử độ bền
 và bài test "lỗi chưa từng gặp".
 
+## 2026-10-26 — Phase 4: Đánh giá QC, Lỗi chưa từng gặp & Độ bền (buổi 5)
+
+**Đã làm**
+- Xây dựng [`src/steelvision/eval/qc_metrics.py`](file:///e:/Vision/src/steelvision/eval/qc_metrics.py):
+  tính `escape_rate`, `overkill_rate` cấp sản phẩm, quét lưới ngưỡng `sweep_thresholds`
+  và tự động chọn điểm vận hành `select_operating_point` trên tập `val` theo mục tiêu
+  `escape_rate <= 2.0%`.
+- Xây dựng [`src/steelvision/eval/robustness.py`](file:///e:/Vision/src/steelvision/eval/robustness.py):
+  6 phép biến đổi môi trường (`brightness_up`, `brightness_down`, `contrast_low`,
+  `gaussian_blur`, `gaussian_noise`, `rotate_5deg`) + bộ tính VOC/COCO 101-point
+  interpolated `AP50` phục vụ đánh giá độ bền và khác miền.
+- Xây dựng [`src/steelvision/eval/run_qc.py`](file:///e:/Vision/src/steelvision/eval/run_qc.py)
+  và cấu hình [`configs/eval.yaml`](file:///e:/Vision/configs/eval.yaml) (`make eval`):
+  - **PatchCore (`MVTec metal_nut`)**: chọn $\tau_{\text{anom}}^* = 0.53$ từ `val` →
+    trên tập `test` đạt **escape rate = `0.00%`**, **overkill rate = `0.00%`** (`4.55%`
+    trên toàn tập 115 ảnh, `F1 = 0.9947`).
+  - **YOLOv8n (`NEU-DET` + 80 mẫu nền thép OK mỗi split)**: chọn $\tau_{\text{det}}^* = 0.25$
+    từ `val` (`escape 1.85%`) → trên tập `test` đạt **escape rate = `0.75%` (`2/266`)**,
+    `overkill = 22.50%`, `F1 = 0.9635` (giảm 12.5× tỷ lệ lọt lỗi so với ngưỡng cảm tính
+    `0.50` vốn để lọt `9.40%`).
+  - **Test "lỗi chưa từng gặp" (Leave-One-Class-Out):** khi ẩn 1 lớp lỗi bất kỳ,
+    detector đơn lẻ để lọt `14.7%–17.3%` trên NEU-DET và `23.7%–26.9%` trên `metal_nut`;
+    khi hợp nhất với PatchCore (`fusion.py`), tỷ lệ lọt lỗi về **`0.00%`** ở cả 4 nhóm lỗi.
+  - **Kiểm thử độ bền & khác miền (`NEU → GC10`):** chỉ ra 2 phát hiện kỹ thuật quan trọng:
+    (1) YOLOv8n nhạy với mờ/nhiễu hạt còn PatchCore giữ AUROC `0.979–0.999` nhưng bị dịch
+    thang điểm gây tăng overkill khi tối/nhiễu → cần Image Quality Gate ở bước tiền xử lý;
+    (2) Cross-domain `NEU → GC10` sụt AP50 từ `0.749` xuống `0.060` do khác trường nhìn
+    (`200×200` vs `2048×1000`) và độ bóng bề mặt → khẳng định vai trò của dữ liệu tự chụp Phase 5.
+- Viết báo cáo chi tiết tại [`docs/reports/qc_robustness.vi.md`](file:///e:/Vision/docs/reports/qc_robustness.vi.md)
+  và unit test (`tests/test_qc_metrics.py`, `tests/test_robustness.py` — `30/30` pass).
+
+**Trạng thái:** Phase 4 ĐÓNG (`30/30` pytest pass, ruff sạch). Tiếp: Phase 6 (ONNX CPU
+benchmark & tối ưu hiệu năng) hoặc Phase 5 (khi có dữ liệu tự chụp).
+
 ## Quy ước duy trì nhật ký
 
 - Sau mỗi buổi làm việc: bổ sung mục theo ngày (đã làm / vấp phải / bài học /

@@ -1,0 +1,21 @@
+# Phase 4 QC & Robustness evaluation configuration
+seed: 42
+target_max_escape_rate: 0.02
+
+yolo:
+  weights: runs/yolo/neu_det_best.pt
+  neu_det_dir: data/processed/neu_det
+  gc10_dir: data/processed/gc10
+  imgsz: 640
+  n_ok_crops_val: 80
+  n_ok_crops_test: 80
+  det_thresholds: [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.70]
+
+patchcore:
+  onnx_path: runs/patchcore/metal_nut/weights/onnx/patchcore.onnx
+  mvtec_test_dir: data/raw/mvtec_ad/metal_nut/test
+  input_size: [256, 256]
+  anom_thresholds: [0.35, 0.40, 0.45, 0.48, 0.50, 0.52, 0.53, 0.55, 0.60, 0.65, 0.70]
+
+output:
+  json_path: runs/eval/qc_report.json

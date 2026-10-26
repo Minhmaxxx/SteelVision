@@ -1,4 +1,4 @@
-.PHONY: help data train patchcore eval serve test lint kaggle-push
+.PHONY: help data train patchcore eval benchmark serve test lint kaggle-push
 
 help:
 	@echo "SteelVision targets:"
@@ -6,6 +6,7 @@ help:
 	@echo "  make train     - print where/how training runs (Kaggle/Colab notebooks)"
 	@echo "  make patchcore - train + evaluate PatchCore on MVTec metal_nut and export ONNX"
 	@echo "  make eval      - run QC evaluation (escape/overkill) and robustness tests"
+	@echo "  make benchmark - run CPU latency (p50/p95), FPS, and RAM benchmark (PyTorch vs ONNX)"
 	@echo "  make serve     - run the FastAPI inspection service locally"
 	@echo "  make test      - run pytest"
 	@echo "  make lint      - ruff check"
@@ -23,6 +24,9 @@ patchcore:
 
 eval:
 	python -m steelvision.eval.run_qc --config configs/eval.yaml
+
+benchmark:
+	python -m steelvision.eval.benchmark --config configs/benchmark.yaml
 
 serve:
 	uvicorn steelvision.api.app:app --host 0.0.0.0 --port 8000

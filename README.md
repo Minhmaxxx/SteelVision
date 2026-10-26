@@ -39,8 +39,8 @@ Work in progress — results tables are filled as experiments land (tracked in
 | YOLOv8 baseline + ablations (Kaggle/Colab) | ✅ NEU mAP50 `0.784`, GC10 `0.679` |
 | PatchCore anomaly detection (`metal_nut` + ONNX + fusion rule) | ✅ image AUROC `0.998`, pixel AUROC `0.987` |
 | QC metrics (`escape`/`overkill`) + unseen defect + robustness | ✅ NEU escape `0.75%`, MVTec escape `0.00%` |
-| Self-captured dataset (protocol + guides ready) | ⬜ Phase 5 |
-| ONNX CPU optimization | ⬜ Phase 6 |
+| Self-captured dataset (protocol + guides + manifest/QC tooling) | ✅ tooling ready (collect when hardware available) |
+| ONNX CPU optimization & benchmark (p50/p95, RAM, FPS) | ✅ E2E `279.6 ms → 63.8 ms` (`4.38×`), RAM `-51.7%` |
 | FastAPI + Docker + dashboard | ⬜ Phase 7 |
 
 ## Architecture

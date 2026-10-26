@@ -1,0 +1,21 @@
+# Phase 6 CPU Latency & Memory Benchmark Configuration
+n_warmup: 10
+n_runs: 50
+intra_op_threads: 4
+
+yolo:
+  pt_weights: runs/yolo/neu_det_best.pt
+  onnx_weights: runs/yolo/neu_det_best.onnx
+  imgsz: 640
+  det_threshold: 0.25
+  test_images_dir: data/processed/neu_det/images/test
+
+patchcore:
+  ckpt_path: runs/patchcore/metal_nut/Patchcore/MVTecAD/metal_nut/v0/weights/lightning/model.ckpt
+  onnx_weights: runs/patchcore/metal_nut/weights/onnx/patchcore.onnx
+  input_size: [256, 256]
+  anom_threshold: 0.53
+  test_images_dir: data/raw/mvtec_ad/metal_nut/test/scratch
+
+output:
+  json_path: runs/eval/benchmark_report.json

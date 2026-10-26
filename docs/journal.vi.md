@@ -159,6 +159,31 @@ và bài test "lỗi chưa từng gặp".
 **Trạng thái:** Phase 4 ĐÓNG (`30/30` pytest pass, ruff sạch). Tiếp: Phase 6 (ONNX CPU
 benchmark & tối ưu hiệu năng) hoặc Phase 5 (khi có dữ liệu tự chụp).
 
+## 2026-10-26 — Phase 5 Tooling & Phase 6: Tối ưu ONNX CPU & Benchmark Latency/RAM (buổi 6)
+
+**Đã làm**
+- **Dọn dung lượng ổ đĩa:** Kiểm toán dung lượng toàn dự án và dọn cache/dữ liệu thừa.
+- **Công cụ dữ liệu tự chụp (Phase 5 — `src/steelvision/data/self_captured.py`):**
+  - Kiểm tra `manifest.csv` theo đúng `docs/capture-protocol.vi.md` (tỷ lệ OK ≥ 40%,
+    cân bằng sáng A/B/C, điều kiện dừng ≥ 300 ảnh QC-passed).
+  - Gom nhóm theo `(panel, position)` để 3 điều kiện sáng A/B/C của cùng vị trí không
+    rò rỉ giữa `train/val/test`.
+  - Đo độ nhất quán nhãn khi gán lại 10% (`compute_label_consistency`: mean box IoU ≥ 0.75,
+    image F1 ≥ 0.90).
+- **Tối ưu & Benchmark CPU (Phase 6 — `src/steelvision/models/detector.py`, `src/steelvision/eval/benchmark.py`):**
+  - Xuất `YOLOv8n` (`runs/yolo/neu_det_best.pt`) sang `runs/yolo/neu_det_best.onnx`
+    (`opset 18`, tĩnh `batch=1`) và viết `OnnxYoloDetector` thuần `onnxruntime` + NumPy NMS
+    (độ lệch `max_conf` so với PyTorch chỉ `1e-6`, đồng thuận phán định `100%`).
+  - Đo hiệu năng CPU (`AMD Ryzen 7 5800H`, `batch=1`, 10 warm-up + 50 timed runs):
+    - **YOLOv8n (`640×640`):** `p50` giảm từ `66.65 ms` (PyTorch) xuống **`58.37 ms`** (ONNX Runtime, `17.13 FPS`), RSS RAM giảm từ `1,166 MB` xuống **`241 MB`** (`4.8×` nhẹ hơn).
+    - **PatchCore (`256×256`):** `p50` giảm từ `210.89 ms` (PyTorch) xuống **`114.47 ms`** (ONNX Runtime, nhanh gấp **`1.84×`**, `p95` giảm `-47.9%` từ `237.22 ms` xuống `123.53 ms`), RSS RAM giảm từ `1,295 MB` xuống **`571 MB`**.
+    - **Pipeline End-to-End (`YOLO + PatchCore + Fusion`):**
+      - Chế độ Full Dual-Branch ONNX: `p50` giảm từ `279.60 ms` xuống **`236.23 ms`** (`p95` giảm từ `361.33 ms` xuống `282.66 ms`), RSS RAM giảm **51.7%** (`1,297 MB → 626 MB`).
+      - Chế độ Early-Exit ONNX (tận dụng tính chất `OR` của luật quyết định khi YOLO đã bắt được lỗi quen thuộc): `p50` giảm từ **`279.60 ms` xuống `63.78 ms` (nhanh gấp `4.38×`, `15.68 FPS`)** mà không đổi bất kỳ phán định OK/NG nào.
+- Ghi báo cáo chi tiết vào [`docs/reports/performance.vi.md`](file:///e:/Vision/docs/reports/performance.vi.md) và thêm `make benchmark` vào `Makefile`. `35/35` unit test pass, ruff sạch.
+
+**Trạng thái:** Phase 6 ĐÓNG. Tiếp: Phase 7 — Dịch vụ FastAPI (`/inspect` + SQLite lưu vết) + Dashboard Streamlit + Docker Compose + Hoàn thiện bàn giao.
+
 ## Quy ước duy trì nhật ký
 
 - Sau mỗi buổi làm việc: bổ sung mục theo ngày (đã làm / vấp phải / bài học /

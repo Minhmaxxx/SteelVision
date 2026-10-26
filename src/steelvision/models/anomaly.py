@@ -49,14 +49,21 @@ class OnnxAnomalyDetector:
         self,
         onnx_path: str | Path,
         input_size: tuple[int, int] = (256, 256),
+        intra_op_threads: int = 0,
         providers: list[str] | None = None,
     ) -> None:
         import onnxruntime as ort
 
         self.onnx_path = Path(onnx_path)
         self.input_size = input_size
+        sess_opts = ort.SessionOptions()
+        sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        if intra_op_threads > 0:
+            sess_opts.intra_op_num_threads = intra_op_threads
+
         self.session = ort.InferenceSession(
             str(self.onnx_path),
+            sess_options=sess_opts,
             providers=providers or ["CPUExecutionProvider"],
         )
         self.input_name = self.session.get_inputs()[0].name

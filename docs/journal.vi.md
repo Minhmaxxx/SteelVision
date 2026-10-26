@@ -92,6 +92,39 @@ treo âm thầm.
 **Trạng thái:** Phase 2 ĐÓNG. Tiếp: Phase 3 — PatchCore trên MVTec metal_nut
 (tải MVTec AD về local trước).
 
+## 2026-10-26 — Phase 3: PatchCore Anomaly Detection + Decision Fusion (buổi 4)
+
+**Đã làm**
+- Xây dựng module hợp nhất quyết định `src/steelvision/decision/fusion.py`:
+  phán định `NG` nếu `max(box.conf) >= τ_det` **hoặc** `anomaly_score >= τ_anom`,
+  phân loại rõ `reason` (`ok` / `detection` / `anomaly` / `both`), hỗ trợ cả chế độ
+  chạy độc lập từng nhánh và quét ngưỡng nhanh. Viết 8 unit test trong `tests/test_fusion.py`.
+- Xây dựng pipeline PatchCore `src/steelvision/models/anomaly.py` + wrapper suy luận
+  CPU `OnnxAnomalyDetector` + notebook `notebooks/02_train_patchcore.ipynb` + unit test
+  `tests/test_anomaly.py`.
+- Huấn luyện và đánh giá PatchCore (`wide_resnet50_2`, `coreset_sampling_ratio=0.01`,
+  `256×256`) trên `MVTec AD (metal_nut)` (220 ảnh `train/good`, 115 ảnh `test`):
+  - **image_AUROC = 0.9980** (99.80%), **image_F1Score = 0.9840**
+  - **pixel_AUROC = 0.9869** (98.69%), **pixel_F1Score = 0.8445**
+  - Tại $\tau_{\text{anom}} = 0.50$, bắt trúng **93/93 (100%)** sản phẩm lỗi ở cả 4 nhóm
+    (`bent`, `color`, `flip`, `scratch` — escape rate = 0%).
+- Xuất mô hình sang ONNX (`runs/patchcore/metal_nut/weights/onnx/patchcore.onnx`) và
+  kiểm chứng suy luận bằng ONNX Runtime CPU (`190.5 ms/ảnh`, nhanh hơn PyTorch ~32%).
+
+**Vấp phải (2 lỗi khi xuất ONNX trên Windows với PyTorch 2.x + Anomalib 2.7)**
+1. Bộ xuất ONNX dynamo của PyTorch 2.x in ký tự `✅` (`\u2705`) ra stdout khi
+   capture graph xong → gãy `UnicodeEncodeError` trên console `cp1252` của Windows.
+   → Sửa: ép `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` trong pipeline.
+2. Mặc định `anomalib 2.7` sinh dummy input có `batch_size = 2` khi dùng `dynamic_axes`
+   và hạ opset từ 18 về 14 → `PatchcoreModel.compute_anomaly_score` bị cố định `batch=2`
+   trong đồ thị ONNX.
+   → Sửa: truyền `onnx_kwargs={"opset_version": 18, "dynamic_axes": {}, "dynamic_shapes": None}`
+   để xuất đồ thị tĩnh chuẩn `batch=1` (`1×3×256×256`).
+
+**Trạng thái:** Phase 3 ĐÓNG (`24/24` pytest pass, ruff sạch). Tiếp: Phase 4 —
+Đánh giá QC (`escape rate`, `overkill rate`, đường đánh đổi ngưỡng) + kiểm thử độ bền
+và bài test "lỗi chưa từng gặp".
+
 ## Quy ước duy trì nhật ký
 
 - Sau mỗi buổi làm việc: bổ sung mục theo ngày (đã làm / vấp phải / bài học /

@@ -35,10 +35,10 @@ Work in progress — results tables are filled as experiments land (tracked in
 |---|---|
 | Repo + CI + data pipeline | ✅ |
 | Public data (NEU-DET, GC10-DET) — converted, deduped, split | ✅ |
-| MVTec AD (metal_nut) download | ⬜ Phase 3 |
-| YOLOv8 baseline + ablations (Kaggle/Colab) | ⬜ notebooks ready |
-| PatchCore anomaly detection | ⬜ |
-| QC metrics + robustness | ⬜ |
+| MVTec AD (`metal_nut`) download | ✅ |
+| YOLOv8 baseline + ablations (Kaggle/Colab) | ✅ NEU mAP50 `0.784`, GC10 `0.679` |
+| PatchCore anomaly detection (`metal_nut` + ONNX + fusion rule) | ✅ image AUROC `0.998`, pixel AUROC `0.987` |
+| QC metrics + robustness | ⬜ Phase 4 |
 | Self-captured dataset (protocol + guides ready) | ⬜ |
 | ONNX CPU optimization | ⬜ |
 | FastAPI + Docker + dashboard | ⬜ |

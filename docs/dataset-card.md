@@ -29,8 +29,8 @@
 | | |
 |---|---|
 | Source | [MVTec AD](https://www.mvtec.com/company/research/datasets-mvtec) (MVTec Software GmbH) |
-| Planned Kaggle mirror | `ipythonx/mvtec-ad` (not yet verified/downloaded — Phase 3) |
-| Used categories | `metal_nut` primarily (has pixel-precise anomaly masks for PatchCore AUROC validation) |
+| Kaggle mirror used | `kagglehub://ipythonx/mvtec-ad` |
+| Used categories | `metal_nut` (220 defect-free `train/good` images; 115 `test` images across `good`, `bent`, `color`, `flip`, `scratch` with pixel-precise anomaly masks) |
 | License | CC BY-NC-SA 4.0 |
 
 ## Reproduction

@@ -1,13 +1,14 @@
-.PHONY: help data train eval serve test lint kaggle-push
+.PHONY: help data train patchcore eval serve test lint kaggle-push
 
 help:
 	@echo "SteelVision targets:"
-	@echo "  make data   - download + convert + split datasets into data/processed"
-	@echo "  make train  - print where/how training runs (Kaggle/Colab notebooks)"
-	@echo "  make eval   - run QC evaluation (escape/overkill) and robustness tests"
-	@echo "  make serve  - run the FastAPI inspection service locally"
-	@echo "  make test   - run pytest"
-	@echo "  make lint   - ruff check"
+	@echo "  make data      - download + convert + split datasets into data/processed"
+	@echo "  make train     - print where/how training runs (Kaggle/Colab notebooks)"
+	@echo "  make patchcore - train + evaluate PatchCore on MVTec metal_nut and export ONNX"
+	@echo "  make eval      - run QC evaluation (escape/overkill) and robustness tests"
+	@echo "  make serve     - run the FastAPI inspection service locally"
+	@echo "  make test      - run pytest"
+	@echo "  make lint      - ruff check"
 	@echo "  make kaggle-push - zip src/steelvision and push/run the Kaggle notebook (needs KAGGLE_API_TOKEN)"
 
 data:
@@ -16,6 +17,9 @@ data:
 train:
 	@echo "Training runs on Kaggle/Colab (GPU). Open notebooks/01_train_yolo_baseline.ipynb"
 	@echo "Downloaded weights go to runs/ and evaluation uses make eval."
+
+patchcore:
+	python -m steelvision.models.anomaly --category metal_nut --skip-download
 
 eval:
 	python -m steelvision.eval.run_qc --config configs/eval.yaml

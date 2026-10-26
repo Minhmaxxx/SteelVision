@@ -174,9 +174,71 @@ xuyên môi trường.
 Điều kiện hoàn thành Phase 2 theo kế hoạch: baseline ✓ (v7), ≥3 ablation ✓
 (imgsz1024 ❌, mosaic0 ✅, yolov8s ❌), bảng kết quả trong docs ✓, dataset
 thứ 2 ✓ (GC10), phân tích lỗi theo lớp ✓. → Chuyển **Phase 3: PatchCore
-anomaly detection (MVTec metal_nut)**. với cấu hình chuẩn
+anomaly detection (MVTec metal_nut)**.
 
-## 2. Nhật ký hạ tầng huấn luyện (bài học Kaggle)
+## 8. Phase 3: Anomaly Detection với PatchCore trên MVTec AD (`metal_nut`) (run 2026-10-26)
+
+**Mục tiêu:** kiểm chứng nhánh anomaly detection (chỉ học từ ảnh `good` không lỗi)
+làm lớp bảo vệ bắt các lỗi chưa từng thấy, xuất mô hình sang ONNX phục vụ suy luận
+CPU, và xây dựng module hợp nhất quyết định `src/steelvision/decision/fusion.py`.
+
+**Cấu hình (`src/steelvision/models/anomaly.py`):**
+- Dataset: MVTec AD — nhóm `metal_nut` (`220` ảnh `train/good`, `115` ảnh `test` gồm
+  `22` ảnh `good` và `93` ảnh lỗi thuộc 4 kiểu: `bent`, `color`, `flip`, `scratch`,
+  kèm ground-truth mask cấp pixel).
+- Kiến trúc: PatchCore (`anomalib 2.7.0`), backbone `wide_resnet50_2` (pretrained ImageNet),
+  trích đặc trưng đa tỷ lệ từ `layer2` + `layer3`, `image_size = 256×256`,
+  `coreset_sampling_ratio = 0.01` (`k`-Center Greedy chọn `2.252 / 225.280` vector
+  đặc trưng × `1.536` chiều), `num_neighbors = 9`, `seed = 42`.
+- Môi trường chạy: Local Windows CPU (`torch 2.14.1+cpu`, `onnxruntime 1.31.0`).
+  Thời gian fit coreset: `261.8s` (~4.4 phút); thời gian test PyTorch: `32.1s`;
+  thời gian test toàn bộ 115 ảnh qua ONNX Runtime CPU: `21.9s` (`190.5 ms/ảnh`).
+
+### Kết quả AUROC & F1 trên tập test (`115` ảnh)
+
+| Chỉ số | Giá trị đạt được | Mốc tham chiếu (Paper PatchCore) | Đánh giá |
+|---|---|---|---|
+| **Image-level AUROC** | **0.9980 (99.80%)** | ~0.991–0.999 | ✅ Khớp mức paper (~99%) |
+| **Image-level F1Score** | **0.9840 (98.40%)** | — | ✅ |
+| **Pixel-level AUROC** | **0.9869 (98.69%)** | ~0.980–0.989 | ✅ Định vị vùng lỗi chính xác |
+| **Pixel-level F1Score** | **0.8445 (84.45%)** | — | ✅ |
+
+### Phân bố điểm số anomaly (ONNX Runtime, chuẩn hóa `[0, 1]`) theo nhóm lỗi
+
+| Nhóm (Test) | Số ảnh | Min score | Mean score | Max score | Bắt NG tại $\tau_{\text{anom}} = 0.50$ |
+|---|---|---|---|---|---|
+| `good` (bình thường) | 22 | 0.3203 | 0.4246 | 0.5622 | 2 / 22 (overkill 9.1% tại 0.50; 4.5% tại 0.53) |
+| `bent` (cong vênh) | 25 | 0.5622 | 0.9496 | 1.0000 | **25 / 25 (100%)** |
+| `color` (đổi màu) | 22 | 0.5327 | 0.8501 | 1.0000 | **22 / 22 (100%)** |
+| `flip` (lật ngược) | 23 | 1.0000 | 1.0000 | 1.0000 | **23 / 23 (100%)** |
+| `scratch` (trầy xước) | 23 | 0.5465 | 0.8670 | 1.0000 | **23 / 23 (100%)** |
+
+### Đọc hiểu & Hệ quả cho QC Fusion (Phase 4)
+
+- **Không lọt lỗi nào (0% escape rate) ở cả 4 kiểu lỗi:** Điểm thấp nhất của toàn bộ
+  `93` sản phẩm lỗi là `0.5327` (`color`), trong khi điểm trung bình của sản phẩm
+  tốt là `0.4246`. Tại ngưỡng mặc định $\tau_{\text{anom}} = 0.50$ (hoặc $\tau_{\text{anom}} = 0.53$),
+  **93/93 sản phẩm lỗi đều bị bắt (escape rate = 0.0%)**, bất kể kiểu lỗi là biến dạng
+  hình học (`bent`), lỗi lắp đặt (`flip`), đổi màu (`color`) hay trầy bề mặt (`scratch`).
+- **Xuất ONNX & Suy luận CPU:** Đồ thị ONNX (`opset 18`, `batch=1`, đóng gói cả
+  `pre_processor` và `post_processor` vào trong đồ thị) xuất ra tại
+  `runs/patchcore/metal_nut/weights/onnx/patchcore.onnx` (`108.27 MB` gồm file `.onnx`
+  và `.onnx.data`). Suy luận qua ONNX Runtime CPU nhanh hơn PyTorch ~32% (`190.5 ms/ảnh`
+  so với `278.9 ms/ảnh`).
+- **Luật hợp nhất (`src/steelvision/decision/fusion.py`):** Phán định `NG` khi
+  `max_det_confidence >= τ_det` **hoặc** `anomaly_score >= τ_anom`, trả về rõ
+  `reason ∈ {"ok", "detection", "anomaly", "both"}` cùng danh sách box vượt ngưỡng.
+  Đã kiểm thử đơn vị đầy đủ (`tests/test_fusion.py`, `tests/test_anomaly.py`).
+
+## 9. Trạng thái Phase 3: ĐÓNG
+
+Điều kiện hoàn thành Phase 3 theo kế hoạch:
+- Chạy PatchCore trên MVTec `metal_nut` đạt AUROC ~99% ✓ (`image_AUROC = 0.9980`, `pixel_AUROC = 0.9869`).
+- Báo cáo image-level + pixel-level AUROC và xuất ONNX ✓ (`runs/patchcore/metal_nut/metrics.json`).
+- Module `decision/fusion.py` + unit tests ✓ (`24/24` pytest pass).
+→ Sẵn sàng chuyển sang **Phase 4: Đánh giá QC (escape/overkill) + kiểm thử độ bền & lỗi chưa từng gặp**.
+
+## 10. Nhật ký hạ tầng huấn luyện (bài học Kaggle & ONNX)
 
 Xem `memory`/phiên 2026-10-25: 4 lỗi batch-session đã sửa (GPU flag `machine_shape`,
 CLI chỉ upload code_file → nhúng source base64, `!python -m` mất sys.path → gọi

@@ -1,8 +1,8 @@
-"""Self-captured dataset tooling (Phase 5): manifest validation, CVAT YOLO ingestion, and 10% re-annotation QC.
+"""Self-captured dataset tooling (Phase 5): manifest validation, ingestion, and QC.
 
 Implements the rules specified in:
-- ``docs/capture-protocol.vi.md`` (manifest CSV schema, >=40% OK ratio, panel+position grouping across lighting A/B/C)
-- ``docs/labeling-guide.vi.md`` (8 px minimum box size, 10% re-annotation consistency: mean IoU >= 0.75, image F1 >= 0.90)
+- ``docs/capture-protocol.vi.md`` (manifest CSV schema, >=40% OK ratio, panel+position grouping)
+- ``docs/labeling-guide.vi.md`` (8 px min box, 10% re-annotation: mean IoU >= 0.75, F1 >= 0.90)
 """
 
 from __future__ import annotations
@@ -93,7 +93,9 @@ def validate_manifest(
             if not panel or not pos:
                 report.errors.append(f"Row {row_idx}: 'panel' and 'position' must be non-empty")
             if lighting not in VALID_LIGHTING:
-                report.errors.append(f"Row {row_idx}: invalid lighting '{lighting}' (expected A/B/C)")
+                report.errors.append(
+                    f"Row {row_idx}: invalid lighting '{lighting}' (expected A/B/C)"
+                )
             if is_def not in VALID_DEFECTIVE:
                 report.errors.append(f"Row {row_idx}: invalid is_defective '{is_def}'")
             if status not in VALID_STATUS:
@@ -118,7 +120,9 @@ def validate_manifest(
         len(report.errors) == 0
         and report.n_qc_passed >= min_total_qc_passed
         and report.ok_ratio >= min_ok_ratio
-        and all(report.lighting_ok_counts.get(lt, 0) >= min_ok_per_lighting for lt in VALID_LIGHTING)
+        and all(
+            report.lighting_ok_counts.get(lt, 0) >= min_ok_per_lighting for lt in VALID_LIGHTING
+        )
     )
     return report
 
@@ -185,7 +189,9 @@ def compute_label_consistency(
     Matches boxes of the same class greedily by IoU within each image, and also
     computes image-level OK/NG F1 (where an image is NG iff it has >=1 box).
     """
-    stems = sorted({p.stem for p in labels_dir_a.glob("*.txt")} | {p.stem for p in labels_dir_b.glob("*.txt")})
+    stems = sorted(
+        {p.stem for p in labels_dir_a.glob("*.txt")} | {p.stem for p in labels_dir_b.glob("*.txt")}
+    )
     if not stems:
         raise ValueError("No .txt label files found in either directory.")
 

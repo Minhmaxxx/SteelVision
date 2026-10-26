@@ -1,0 +1,39 @@
+services:
+  api:
+    build: .
+    container_name: steelvision-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./runs:/app/runs
+    environment:
+      - STEELVISION_YOLO_ONNX=/app/runs/yolo/neu_det_best.onnx
+      - STEELVISION_PATCHCORE_ONNX=/app/runs/patchcore/metal_nut/weights/onnx/patchcore.onnx
+      - STEELVISION_DB_PATH=/app/runs/traceability/inspections.db
+      - STEELVISION_NG_DIR=/app/runs/traceability/ng_images
+    command: ["uvicorn", "steelvision.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    container_name: steelvision-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./runs:/app/runs
+    environment:
+      - STEELVISION_YOLO_ONNX=/app/runs/yolo/neu_det_best.onnx
+      - STEELVISION_PATCHCORE_ONNX=/app/runs/patchcore/metal_nut/weights/onnx/patchcore.onnx
+      - STEELVISION_DB_PATH=/app/runs/traceability/inspections.db
+      - STEELVISION_NG_DIR=/app/runs/traceability/ng_images
+    command:
+      [
+        "streamlit",
+        "run",
+        "src/steelvision/dashboard/app.py",
+        "--server.address=0.0.0.0",
+        "--server.port=8501",
+      ]
+    depends_on:
+      - api
+    restart: unless-stopped

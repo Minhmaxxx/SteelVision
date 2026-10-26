@@ -184,6 +184,17 @@ benchmark & tối ưu hiệu năng) hoặc Phase 5 (khi có dữ liệu tự ch�
 
 **Trạng thái:** Phase 6 ĐÓNG. Tiếp: Phase 7 — Dịch vụ FastAPI (`/inspect` + SQLite lưu vết) + Dashboard Streamlit + Docker Compose + Hoàn thiện bàn giao.
 
+## 2026-10-26 — Phase 7: Dịch vụ FastAPI, SQLite Traceability, Streamlit Dashboard, Docker & Bàn giao (buổi 7)
+
+**Đã làm**
+- Xây dựng cổng kiểm tra chất lượng ảnh trước suy luận [`src/steelvision/api/quality.py`](file:///e:/Vision/src/steelvision/api/quality.py) (`check_image_quality`): đo độ sáng trung bình, độ tương phản và phương sai độ nét Laplacian để gắn cờ `too_dark`, `too_bright`, `low_contrast`, `blurry` (giải quyết trực tiếp hiện tượng tăng overkill khi sụt nguồn sáng phát hiện ở Phase 4).
+- Xây dựng kho lưu vết SQLite [`src/steelvision/api/store.py`](file:///e:/Vision/src/steelvision/api/store.py) (`TraceabilityStore`): lưu mọi lần kiểm tra vào bảng `inspections` (thời gian UTC, tên file, kích thước, phán quyết `OK/NG`, lý do `ok/detection/anomaly/both`, điểm tin cậy, phiên bản ngưỡng `v1-val-2026-10-26`, danh sách lỗi, kết quả quality gate, latency và đường dẫn ảnh NG lưu trữ).
+- Xây dựng dịch vụ FastAPI [`src/steelvision/api/app.py`](file:///e:/Vision/src/steelvision/api/app.py) (`GET /health`, `POST /inspect`, `GET /inspections`, `GET /inspections/{id}`, `GET /stats`) và giao diện quản trị QC [`src/steelvision/dashboard/app.py`](file:///e:/Vision/src/steelvision/dashboard/app.py) (Streamlit dashboard: KPI tổng quan, kiểm tra trực tiếp hiển thị bbox + bản đồ nhiệt PatchCore, bảng lịch sử lọc theo `OK/NG`/lớp lỗi và thư viện ảnh NG).
+- Đóng gói [`Dockerfile`](file:///e:/Vision/Dockerfile), [`docker-compose.yml`](file:///e:/Vision/docker-compose.yml), [`.dockerignore`](file:///e:/Vision/.dockerignore) và viết bộ test tự động [`tests/test_api.py`](file:///e:/Vision/tests/test_api.py) (`39/39` unit test toàn repo pass).
+- Viết script tạo video demo 60 giây [`scripts/generate_demo_video.py`](file:///e:/Vision/scripts/generate_demo_video.py) → xuất `runs/demo_steelvision.mp4` (`1280×720`, `30 FPS`, `15.68 MB`) và hoàn thiện toàn bộ tài liệu bàn giao: [`docs/model-card.md`](file:///e:/Vision/docs/model-card.md), [`docs/lessons-learned.vi.md`](file:///e:/Vision/docs/lessons-learned.vi.md), [`README.md`](file:///e:/Vision/README.md), [`SteelVision_Project_Overview.md`](file:///e:/Vision/SteelVision_Project_Overview.md).
+
+**Trạng thái:** Phase 7 ĐÓNG — Dự án hoàn tất toàn bộ 7 Phase.
+
 ## Quy ước duy trì nhật ký
 
 - Sau mỗi buổi làm việc: bổ sung mục theo ngày (đã làm / vấp phải / bài học /

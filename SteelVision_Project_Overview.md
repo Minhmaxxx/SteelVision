@@ -178,9 +178,9 @@ Dự án được thiết kế để trả lời trực tiếp các câu hỏi n
 - Dịch vụ chạy được bằng Docker, có test tự động.
 - Có video demo và README đầy đủ phần hạn chế.
 
-## 13. Mẫu ghi trên CV (thay bằng số thật)
+## 13. Mẫu ghi trên CV (đã điền số thực nghiệm từ dự án)
 
-> **SteelVision – Hệ thống kiểm tra lỗi bề mặt kim loại** | Python, PyTorch, YOLOv8, Anomalib, ONNX, FastAPI, Docker
-> - Xây dựng pipeline detection + anomaly detection quyết định OK/NG; tự thu thập và gán nhãn **[N]** ảnh trong **[k]** điều kiện ánh sáng.
-> - Đạt mAP50 **[x]** và escape rate **[y]%** tại overkill **[z]%** trên tập test tự chụp; phân tích độ bền theo thay đổi ánh sáng và khác miền dữ liệu.
-> - Tối ưu ONNX/OpenVINO, giảm latency CPU từ **[a] ms** xuống **[b] ms**; triển khai FastAPI + Docker, dashboard truy vết kết quả kiểm tra.
+> **SteelVision – Hệ thống kiểm tra lỗi bề mặt kim loại** | Python, PyTorch, YOLOv8, Anomalib (PatchCore), ONNX Runtime, FastAPI, Docker
+> - Xây dựng pipeline kết hợp Object Detection (`YOLOv8n`) và Unsupervised Anomaly Detection (`PatchCore`) kèm cổng kiểm tra chất lượng ảnh (Image Quality Gate) quyết định **OK/NG** trên `4,420` ảnh công nghiệp (`NEU-DET`, `GC10-DET`, `MVTec AD metal_nut`) sau khử trùng lặp `pHash`; thiết kế giao thức thu thập & kiểm định nhất quán nhãn cho bộ dữ liệu tự chụp trong `3` điều kiện ánh sáng.
+> - Đạt **mAP@50 = `0.784`** trên `NEU-DET` (`+1.95%` nhờ tắt Mosaic), **Image AUROC = `99.80%`** / **Pixel AUROC = `98.69%`** trên `MVTec metal_nut`; tối ưu ngưỡng theo mục tiêu QC giúp giảm **escape rate từ `9.40%` xuống `0.75%`** trên `NEU-DET` và đạt **escape rate `0.00%`** (overkill `0.00%` trên tập test, `4.55%` toàn tập) trên `metal_nut` kể cả khi giả lập lỗi mới chưa từng gặp.
+> - Tối ưu suy luận bằng **ONNX Runtime + Early-Exit OR-Fusion**, giảm độ trễ CPU (`p50`) từ **`279.60 ms` xuống `63.78 ms` (`4.38×` nhanh hơn, `15.68 FPS`)** và giảm **51.7% RAM (`1,297 MB → 626 MB`)**; đóng gói dịch vụ FastAPI (`/inspect`), lưu vết SQLite, Streamlit dashboard và Docker Compose (`39/39` unit test pass).

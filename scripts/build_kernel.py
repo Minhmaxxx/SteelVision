@@ -77,7 +77,7 @@ def main() -> None:
 
     data = zip_source()
     b64 = base64.b64encode(data).decode()
-    lines = "\n".join(f'    "{b64[i:i + 120]}",' for i in range(0, len(b64), 120))
+    lines = "\n".join(f'    "{b64[i : i + 120]}",' for i in range(0, len(b64), 120))
 
     nb = json.loads(TEMPLATE.read_text(encoding="utf-8"))
     nb = copy.deepcopy(nb)

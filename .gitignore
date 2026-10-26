@@ -8,8 +8,8 @@ build/
 dist/
 
 # Large artifacts (weights, metrics, experiment logs live outside git)
-data/
-runs/
+/data/
+/runs/
 wandb/
 mlruns/
 *.pt

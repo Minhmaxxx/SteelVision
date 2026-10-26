@@ -132,7 +132,49 @@ texture → tắt mosaic sẽ giúp các lớp texture.
 
 **Cấu hình detector cuối Phase 2: YOLOv8n + imgsz 640 + mosaic=0.0 → mAP50 0.784.**
 
-## 6. GC10-DET (dataset thứ 2) — đang chạy với cấu hình chuẩn
+## 6. GC10-DET với cấu hình chuẩn (run 2026-10-26, kernel v11)
+
+**Cấu hình:** YOLOv8n @640 + mosaic=0.0, 100 epochs, seed 42 — đúng công thức
+đã chốt ở §5, chỉ đổi dataset. Kernel chạy 43 phút (chuẩn bị dữ liệu + train).
+
+### Kết quả trên tập test GC10 (349 ảnh, 10 lớp)
+
+| Chỉ số | Giá trị |
+|---|---|
+| mAP50 | 0.679 |
+| mAP50-95 | 0.317 |
+| Precision / Recall | 0.658 / 0.701 |
+
+AP50 theo lớp: punching **0.986** · crescent_gap 0.931 · weld_line 0.876 ·
+water_spot 0.809 · silk_spot 0.678 · oil_spot 0.690 · waist_folding 0.657 ·
+crease 0.595 · **inclusion 0.321** · **rolled_pit 0.242**.
+
+### Đọc hiểu
+
+- Khó hơn NEU (0.679 vs 0.784) — hợp lý: 10 lớp, mất cân bằng nặng
+  (silk_spot 514 box train vs rolled_pit 32).
+- **Hai lớp nghèo dữ liệu rơi đúng chỗ nghèo hiệu năng**: rolled_pit (chỉ 32
+  box train → AP 0.242), inclusion (141 box → 0.321). Đây là bằng chứng rõ
+  cho việc xử lý mất cân bằng lớp — hướng tiếp theo nếu cần nâng GC10.
+- Mục đích chính của run: chứng minh pipeline tổng quát cho dataset thứ 2 ✓,
+  và làm nền cho kiểm thử cross-domain (Phase 4: train NEU test GC10 & ngược lại).
+
+### Ghi chú tái lập (trung thực)
+
+Fingerprint GC10 trong kernel (`05e356eb691d`) khác local (`732df69e4388`)
+NHƯNG thành phần chia tập khớp tuyệt đối từng lớp từng split (so trực tiếp
+2 bản log). Nguyên nhân: `sample_id` dùng đường dẫn tương đối — thư mục
+kagglehub cache (local) và mount `/kaggle/input` (kernel) khác cấp thư mục
+gốc → khác chuỗi id, cùng một phép chia. Việc nhỏ để làm sau: đổi
+`sample_id` sang dùng tên XML (bất biến với layout) để fingerprint so được
+xuyên môi trường.
+
+## 7. Trạng thái Phase 2: ĐÓNG
+
+Điều kiện hoàn thành Phase 2 theo kế hoạch: baseline ✓ (v7), ≥3 ablation ✓
+(imgsz1024 ❌, mosaic0 ✅, yolov8s ❌), bảng kết quả trong docs ✓, dataset
+thứ 2 ✓ (GC10), phân tích lỗi theo lớp ✓. → Chuyển **Phase 3: PatchCore
+anomaly detection (MVTec metal_nut)**. với cấu hình chuẩn
 
 ## 2. Nhật ký hạ tầng huấn luyện (bài học Kaggle)
 

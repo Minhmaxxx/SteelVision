@@ -66,6 +66,32 @@ ra cho COCO — dataset công nghiệp nhỏ cần thử lại lưới augmentat
 và pipeline phải fail-nhanh + fail-ầm-ầm (cell assert, assert đếm) thay vì
 treo âm thầm.
 
+## 2026-10-26 — Đóng Phase 2, sẵn sàng Phase 3 (buổi 3)
+
+**Đã làm**
+- Ablation #2 (mosaic=0.0): **DƯƠNG** — mAP50 0.766→0.784, crazing 0.432→0.476
+  → chốt cấu hình chuẩn: yolov8n + imgsz 640 + mosaic=0.0.
+- Ablation #3 (yolov8s): **ÂM** — 0.776, overfit dataset nhỏ. Bảng tổng hợp
+  ablation hoàn chỉnh, điều kiện Phase 2 (≥3 thay đổi) đạt.
+- Run GC10-DET (v11) với cấu hình chuẩn: mAP50 0.679 — khó hơn NEU, hai lớp
+  nghèo dữ liệu (rolled_pit 32 box train, inclusion 141) rơi đúng chỗ thấp.
+  Pipeline chứng minh tổng quát cho dataset thứ 2.
+- Dọn template notebook: bỏ cell prep thừa còn sót, khôi phục cell assert GPU
+  (phát hiện khi thêm tham số `--dataset` cho build_kernel).
+- Nhật ký này + báo cáo cập nhật sau mỗi kết quả.
+
+**Vấp phải (nhỏ)**
+- Fingerprint GC10 kernel khác local dù thành phần chia tập khớp tuyệt đối —
+  do `sample_id` nhạy layout thư mục (kagglehub cache vs `/kaggle/input`).
+  Việc nhỏ: đổi sample_id sang tên XML. NEU thì khớp 100% xuyên OS.
+
+**Bài học**
+- Ablation cho kết quả âm cũng là kết quả: 2/3 giả thuyết bị số liệu phủ
+  nhận (imgsz, model size) — tránh được 2 hướng đi tốn công vô ích ở Phase sau.
+
+**Trạng thái:** Phase 2 ĐÓNG. Tiếp: Phase 3 — PatchCore trên MVTec metal_nut
+(tải MVTec AD về local trước).
+
 ## Quy ước duy trì nhật ký
 
 - Sau mỗi buổi làm việc: bổ sung mục theo ngày (đã làm / vấp phải / bài học /

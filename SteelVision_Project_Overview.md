@@ -132,3 +132,57 @@ Khi lần lượt giấu từng lớp lỗi đi để đóng vai "loại lỗi m
 > - Xây dựng pipeline kết hợp Object Detection (`YOLOv8n`) và Unsupervised Anomaly Detection (`PatchCore`) kèm cổng kiểm tra chất lượng ảnh (Image Quality Gate) quyết định **OK/NG** trên `4,420` ảnh công nghiệp (`NEU-DET`, `GC10-DET`, `MVTec AD metal_nut`) sau khử trùng lặp `pHash`; thiết kế giao thức thu thập & kiểm định nhất quán nhãn cho bộ dữ liệu tự chụp trong `3` điều kiện ánh sáng.
 > - Đạt **mAP@50 = `0.784`** trên `NEU-DET` (`+1.95%` nhờ tắt Mosaic), **Image AUROC = `99.80%`** / **Pixel AUROC = `98.69%`** trên `MVTec metal_nut`; tối ưu ngưỡng theo mục tiêu QC giúp giảm **escape rate từ `9.40%` xuống `0.75%`** trên `NEU-DET` và đạt **escape rate `0.00%`** (overkill `0.00%` trên tập test, `4.55%` toàn tập) trên `metal_nut` kể cả khi giả lập lỗi mới chưa từng gặp.
 > - Tối ưu suy luận bằng **ONNX Runtime + Early-Exit OR-Fusion**, giảm độ trễ CPU (`p50`) từ **`279.60 ms` xuống `63.78 ms` (`4.38x` nhanh hơn, `15.68 FPS`)** và giảm **51.7% RAM (`1,297 MB -> 626 MB`)**; đóng gói dịch vụ FastAPI (`/inspect`), lưu vết SQLite, Streamlit dashboard và Docker Compose (`39/39` unit test pass).
+
+
+---
+
+## 9. Bảng Giải Thích Nhanh Các Thuật Ngữ & Chỉ Số Cốt Lõi (Để Ôn Tập)
+
+| Thuật ngữ / Ký hiệu | Ý nghĩa bản chất dễ hiểu | Con số trong dự án của bạn |
+|---|---|---|
+| **OK / NG** | **OK (Good):** Sản phẩm đạt chuẩn. **NG (No Good):** Sản phẩm bị lỗi, cần loại bỏ. | Phán quyết cuối cùng của hệ thống cho mỗi bức ảnh. |
+| **Escape Rate (Tỷ lệ lọt lỗi)** | Trong 100 sản phẩm **thật sự bị hỏng**, có bao nhiêu sản phẩm bị máy chấm nhầm là OK và lọt ra thị trường (`FN / Tổng NG thật`). Đây là chỉ số sống còn nhất trong nhà máy. | Mục tiêu `<= 2.0%`. Đạt **`0.75%`** trên `NEU-DET` (so với `9.40%` nếu để ngưỡng `0.50`) và **`0.00%`** trên `MVTec metal_nut`. |
+| **Overkill Rate (Tỷ lệ báo giả)** | Trong 100 sản phẩm **thật sự tốt (OK)**, có bao nhiêu sản phẩm bị máy quá nhạy báo nhầm là NG (`FP / Tổng OK thật`). | Đạt **`0.00%`** trên tập `test` của `metal_nut` (`4.55%` toàn tập 115 ảnh) và **`22.50%`** trên `NEU-DET` tại ngưỡng chặt `0.25`. |
+| **pHash (Perceptual Hash)** | Thuật toán rút gọn bức ảnh thành chuỗi bit 64-bit dựa trên cấu trúc tần số thấp. Hai ảnh gần giống nhau sẽ có khoảng cách Hamming rất nhỏ (`<= 4`), giúp lọc ảnh trùng trước khi chia `train/test`. | Loại bỏ `1` cặp trùng trong `NEU-DET` (còn `1,799` ảnh) và `8` cặp trùng trong `GC10-DET` (còn `2,286` ảnh). |
+| **mAP@50 & mAP@50-95** | Độ chính xác trung bình của khung bao (bounding box) xét tại ngưỡng giao trên hợp `IoU = 0.50` (`mAP@50`) và trung bình từ `IoU = 0.50` đến `0.95` (`mAP@50-95`). | YOLOv8n (`mosaic=0.0`) đạt **`mAP@50 = 0.7836`** và **`mAP@50-95 = 0.4404`** trên tập `test` `NEU-DET`. |
+| **PatchCore & Coreset** | Mô hình phát hiện bất thường dùng mạng `WideResNet50` đã tiền huấn luyện để trích xuất đặc trưng từng vùng nhỏ (patch) của các ảnh `OK`, sau đó nén lại còn `1%` vector đại diện nhất (**Coreset**). Khi có ảnh mới, nó đo khoảng cách tới Coreset: càng xa thì điểm bất thường càng cao. | Chỉ học từ `220` ảnh `OK`, đạt **`Image AUROC = 99.80%`** và **`Pixel AUROC = 98.69%`** trên `metal_nut`. |
+| **Latency p50 / p95** | **p50 (trung vị):** 50% số lần chạy nhanh hơn mức này. **p95 (phân vị thứ 95):** 95% số lần chạy nhanh hơn mức này (đo độ ổn định thực tế khi tải nặng). | Toàn tuyến giảm từ `p50 = 279.60 ms` (`p95 = 361.33 ms`) xuống **`p50 = 63.78 ms` (`p95 = 100.22 ms`)**. |
+
+---
+
+## 10. Cẩm Nang 8 Câu Hỏi Phỏng Vấn Xoáy Sâu & Cách Trả Lời
+
+### Câu 1: "Tại sao bạn kết hợp cả YOLOv8 và PatchCore mà không dùng 1 mô hình thôi?"
+- **Trả lời:** Vì hai mô hình giải quyết hai mặt đối lập của bài toán QC:
+  1. **YOLOv8n (Supervised Object Detection):** Rất giỏi chỉ đích danh **tên loại lỗi và tọa độ khung bao** cho 6 loại lỗi quen thuộc đã có trong lịch sử nhà máy, nhưng nó hoàn toàn "mù" trước một loại lỗi thứ 7 chưa từng xuất hiện trong tập huấn luyện (khi gặp lỗi lạ, YOLO trả về `confidence = 0` và kết luận nhầm là `OK`).
+  2. **PatchCore (Unsupervised Anomaly Detection):** Chỉ cần học từ ảnh sản phẩm tốt (`OK`) để ghi nhớ chuẩn bề mặt. Nó bắt được **mọi dị tật lạ** với `AUROC = 99.80%`, nhưng lại không phân biệt được tên gọi cụ thể của từng loại lỗi.
+  - Khi ghép cả hai qua cổng **HOẶC (`OR-Gate`)**, hệ thống vừa định danh được lỗi quen thuộc (nhờ YOLO), vừa có lưới an toàn chặn đứng lỗi mới (nhờ PatchCore, kéo tỷ lệ lọt lỗi mới từ `23.7%–26.9%` về `0.00%`).
+
+### Câu 2: "Trong phần Ablation, tại sao tắt Mosaic (`mosaic=0.0`) lại làm tăng mAP trên NEU-DET?"
+- **Trả lời:** Phép tăng cường `Mosaic` ghép 4 bức ảnh khác nhau thành 1 ảnh rất hiệu quả cho tập dữ liệu tự nhiên như COCO. Tuy nhiên, trên ảnh chụp cận cảnh bề mặt thép cán nóng (`NEU-DET`), việc ghép 4 tấm thép có độ sáng nền khác nhau tạo ra **hai đường ranh giới cắt ngang chữ thập rất sắc nét**. Mô hình dễ nhầm các đường biên ghép ảnh này với vết xước (`scratches`) hoặc vết nứt (`crazing`), đồng thời làm nhiễu tương phản cục bộ giữa vết lỗi và nền kim loại. Khi tắt `mosaic=0.0`, `mAP@50` tăng từ `0.7641` lên `0.7836`, đặc biệt lớp nứt chân chim (`crazing`) tăng tới `+10.3%` (`0.388 -> 0.491`).
+
+### Câu 3: "Tại sao bạn chọn ngưỡng `tau_det = 0.25` và `tau_anom = 0.53`? Chọn như thế nào?"
+- **Trả lời:** Em tuyệt đối không chọn ngưỡng bằng mắt hay chạm vào tập `test`. Quy trình chuẩn là:
+  1. Đặt mục tiêu kỹ thuật của bài toán QC lên hàng đầu: **Tỷ lệ lọt lỗi (`escape_rate`) trên tập `validation` phải `<= 2.0%`**.
+  2. Quét một lưới các ngưỡng ứng viên trên tập `val`, lọc ra các ngưỡng thỏa mãn `escape_rate <= 2.0%`, và chọn ngưỡng có `overkill_rate` thấp nhất (hoặc `F1` cao nhất). Kết quả trên tập `val` cho ra `tau_det = 0.25` và `tau_anom = 0.53`.
+  3. Sau đó khóa cứng cặp ngưỡng này và đem đánh giá đúng 1 lần trên tập `test` độc lập: trên `NEU-DET`, `escape_rate` giảm từ `9.40%` (ở ngưỡng mặc định `0.50`) xuống chỉ còn **`0.75%`** (`2/266` mẫu).
+
+### Câu 4: "Làm thế nào bạn giảm được thời gian chạy trên CPU từ 280 ms xuống 64 ms (nhanh gấp 4.38 lần)?"
+- **Trả lời:** Em áp dụng 2 tầng tối ưu:
+  1. **Tầng đồ thị tính toán (ONNX Runtime):** Xuất cả YOLOv8n và PatchCore sang định dạng `ONNX` (opset 18, cố định `batch=1`) và viết bộ tiền xử lý/NMS thuần NumPy để gỡ bỏ hoàn toàn overhead của PyTorch/Anomalib. Riêng bước này giúp giảm **51.7% dung lượng RAM** (`1,297 MB -> 626 MB`) và tăng tốc PatchCore từ `210.89 ms` xuống `114.47 ms`.
+  2. **Tầng thuật toán hệ thống (Early-Exit OR-Gate):** Vì luật quyết định sản phẩm là phép `HOẶC` (`NG` nếu `YOLO >= 0.25` HOẶC `PatchCore >= 0.53`), nhánh YOLOv8n nhẹ hơn nhiều (`58.37 ms`) được xếp chạy trước. Nếu YOLOv8n đã phát hiện lỗi vượt ngưỡng `0.25`, phán quyết cuối cùng chắc chắn 100% là `NG`, nên hệ thống ngắt sớm (`Early-Exit`) mà không cần tốn thêm `114 ms` chạy PatchCore. Nhờ vậy độ trễ trung vị `p50` toàn tuyến giảm xuống **`63.78 ms` (`15.68 FPS`)**.
+
+### Câu 5: "Chuyện gì xảy ra khi đèn LED ở nhà máy bị yếu đi hoặc camera bị mờ?"
+- **Trả lời:** Trong thực nghiệm độ bền (Phase 4) với 6 phép nhiễu quang học, em phát hiện ra rằng khi giảm độ sáng đi 40% (`brightness_down`), mặc dù PatchCore vẫn giữ nguyên khả năng xếp hạng (`AUROC = 99.66%`), nhưng toàn bộ vector đặc trưng của ảnh bị tối bị đẩy ra xa Coreset chuẩn, khiến điểm bất thường tăng đồng loạt và gây ra **100% báo giả (`overkill`)** nếu dùng ngưỡng cố định `0.53`.
+- Từ phát hiện này, thay vì để mô hình âm thầm báo lỗi sai hàng loạt, em thiết kế **Cổng kiểm tra chất lượng ảnh (`check_image_quality`)** chạy trước mô hình (chỉ tốn `< 1 ms`), đo độ sáng trung bình, độ tương phản và phương sai Laplacian để gắn cờ cảnh báo `too_dark`, `too_bright`, `low_contrast`, `blurry` trả về trực tiếp trong JSON của API `/inspect` và lưu vào SQLite để kỹ thuật viên biết cần kiểm tra lại đèn/camera.
+
+### Câu 6: "Khi đem mô hình huấn luyện trên NEU-DET sang chạy trên GC10-DET thì kết quả thế nào?"
+- **Trả lời:** Khi kiểm thử chéo miền (`Cross-Domain`) lớp lỗi tạp chất (`inclusion`) từ mô hình huấn luyện trên `NEU-DET` sang tập `GC10-DET`, chỉ số `AP@50` sụt từ `0.749` xuống `0.0686`. Nguyên nhân vật lý rất rõ ràng: ảnh `NEU-DET` là ảnh chụp cận cảnh (`200x200`) bề mặt thép cán nóng nhám tối, trong khi `GC10-DET` là ảnh chụp toàn khổ rộng (`2048x1000`) bề mặt thép cán nguội có phản xạ gương. Khi ép ảnh `2048x1000` về `640x640`, vết tạp chất co nhỏ lại gấp 10 lần so với kích thước anchor mà mô hình đã học. Bài học rút ra là khi triển khai sang dây chuyền mới, bắt buộc phải đồng bộ tỷ lệ `mm/pixel` hoặc fine-tune trên dữ liệu chụp tại trạm đó.
+
+### Câu 7: "Làm sao bạn đảm bảo kết quả thực nghiệm không bị gian lận dữ liệu (Data Leakage)?"
+- **Trả lời:** Các bộ dữ liệu công khai thường chứa các khung hình cắt liên tiếp từ cùng một cuộn thép. Em đã viết module băm cảm nhận (`pHash` trong `src/steelvision/data/split.py`), tính ma trận khoảng cách Hamming giữa toàn bộ các ảnh và dùng thuật toán Union-Find gom tất cả các cặp ảnh có khoảng cách Hamming `<= 4` vào cùng một cụm *trước khi* chia `train / val / test`. Nhờ đó phát hiện và loại bỏ `1` cặp ảnh trùng trong `NEU-DET` và `8` cặp trùng trong `GC10-DET`, đảm bảo không có ảnh gần giống nhau nào vừa nằm ở `train` vừa nằm ở `test`.
+
+### Câu 8: "Hạn chế lớn nhất hiện tại của hệ thống là gì và hướng nâng cấp tiếp theo?"
+- **Trả lời:** Có 2 điểm có thể nâng cấp tiếp:
+  1. Lớp lỗi vết nứt chân chim siêu mảnh (`crazing` trên `NEU-DET`) hiện đạt `mAP@50 = 0.491` do vết nứt chỉ rộng 1–2 pixel và lẫn vào vân nền thép. Hướng giải quyết là áp dụng kỹ thuật cắt ô **SAHI (Slicing Aided Hyper Inference)** trên ảnh độ phân giải cao.
+  2. Nhánh PatchCore ONNX (`FP32`) hiện chiếm `114.47 ms` trên CPU; nếu lượng tử hóa tĩnh sang **INT8 (OpenVINO / ONNX Runtime Quantization)**, thời gian chạy nhánh PatchCore trên các sản phẩm `OK` có thể giảm thêm một nửa xuống dưới `55 ms`.

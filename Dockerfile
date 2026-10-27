@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml README.md ./
 COPY src/ ./src/
 COPY configs/ ./configs/
+COPY assets/ ./assets/
 
 # Install lightweight CPU serving runtime + editable package
 RUN pip install --upgrade pip && \

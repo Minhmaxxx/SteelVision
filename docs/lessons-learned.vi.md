@@ -39,7 +39,7 @@ Trong học máy học thuật, người ta thường dùng ngưỡng xác suấ
 - **Lọt lỗi (Escape / False Negative)** đồng nghĩa giao hàng hỏng cho khách hàng — chi phí cực đắt.
 - **Báo giả (Overkill / False Positive)** chỉ tốn công kỹ thuật viên kiểm tra lại.
 
-Trên tập test `NEU-DET`, nếu giữ ngưỡng mặc định `0.50`, tỷ lệ lọt lỗi lên tới **`9.40%`** (`25/266` sản phẩm lỗi bị lọt). Bằng cách vẽ đường cong đánh đổi trên tập `val` với mục tiêu cứng **`escape_rate <= 2.0%`**, chúng tôi chọn được điểm vận hành $\tau_{\text{det}}^* = 0.25$ và $\tau_{\text{anom}}^* = 0.53$. Khi khóa ngưỡng này đem đo một lần duy nhất trên tập `test` độc lập:
+Trên tập test `NEU-DET`, nếu giữ ngưỡng mặc định `0.50`, tỷ lệ lọt lỗi lên tới **`9.40%`** (`25/266` sản phẩm lỗi bị lọt). Bằng cách vẽ đường cong đánh đổi trên tập `val` với mục tiêu cứng **`escape_rate <= 2.0%`**, chúng tôi chọn được điểm vận hành 	au_det = 0.25 và 	au_anom = 0.53. Khi khóa ngưỡng này đem đo một lần duy nhất trên tập `test` độc lập:
 - **NEU-DET:** `escape_rate` giảm hơn **12 lần** (từ `9.40%` xuống **`0.75%`**), đạt `Recall = 99.25%` và `F1 = 0.9635`.
 - **MVTec `metal_nut`:** `escape_rate = 0.00%`, `overkill_rate = 0.00%` trên phân nửa `test` độc lập (`4.55%` trên toàn bộ 115 ảnh).
 
@@ -49,7 +49,7 @@ Trên tập test `NEU-DET`, nếu giữ ngưỡng mặc định `0.50`, tỷ l�
 
 Khi kiểm thử độ bền với 6 phép nhiễu quang học ở Phase 4, một hiện tượng rất thú vị đã lộ diện:
 - **PatchCore giữ nguyên khả năng xếp hạng (`image_AUROC >= 97.85%`)** dưới mọi loại nhiễu.
-- Tuy nhiên, khi ảnh bị tối đi 40% (`brightness_down`) hoặc nhiễu hạt cảm biến (`gaussian_noise`), khoảng cách đặc trưng đến coreset dịch chuyển đồng loạt lên cao, khiến **100% sản phẩm tốt bị báo nhầm là NG (`overkill = 100%`)** nếu dùng ngưỡng cố định $\tau_{\text{anom}}^* = 0.53$.
+- Tuy nhiên, khi ảnh bị tối đi 40% (`brightness_down`) hoặc nhiễu hạt cảm biến (`gaussian_noise`), khoảng cách đặc trưng đến coreset dịch chuyển đồng loạt lên cao, khiến **100% sản phẩm tốt bị báo nhầm là NG (`overkill = 100%`)** nếu dùng ngưỡng cố định 	au_anom = 0.53.
 - Thay vì đổ lỗi cho mô hình, giải pháp kỹ thuật thực tế và rẻ nhất là đặt một **Image Quality Gate (`check_image_quality`)** ngay đầu API để đo độ sáng trung bình, độ tương phản và phương sai độ nét Laplacian chỉ trong `< 1 ms`, cảnh báo ngay lỗi đèn chiếu sáng (`too_dark`, `too_bright`) hoặc lệch nét camera (`blurry`) trước khi suy luận.
 
 ---

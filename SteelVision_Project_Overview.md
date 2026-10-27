@@ -12,7 +12,7 @@ Tài liệu này tổng hợp toàn diện dự án **SteelVision**: từ bài t
 2. **Suy luận song song 2 nhánh (Dual-Branch Inference):**
    - **Nhánh 1 — Phát hiện lỗi có giám sát (`YOLOv8n` ONNX):** Khoanh vùng tọa độ (bounding box) và phân loại các lỗi bề mặt đã biết.
    - **Nhánh 2 — Phát hiện bất thường không giám sát (`PatchCore` ONNX):** Chỉ học từ ảnh sản phẩm tốt (`OK`), đóng vai trò "lưới an toàn" định nghĩa thế nào là bề mặt chuẩn và bắt giữ mọi loại dị tật mới chưa từng xuất hiện trong tập nhãn.
-3. **Phán quyết cấp sản phẩm theo chuẩn QC (`OR-Gate Fusion`):** Ra quyết định **OK (Đạt)** hoặc **NG (Loại)** dựa trên cặp ngưỡng vận hành ($\tau_{\text{det}}^* = 0.25, \tau_{\text{anom}}^* = 0.53$) được hiệu chuẩn trên tập `validation` nhằm kiểm soát tỷ lệ lọt lỗi (**escape rate $\le 2\%$**).
+3. **Phán quyết cấp sản phẩm theo chuẩn QC (`OR-Gate Fusion`):** Ra quyết định **OK (Đạt)** hoặc **NG (Loại)** dựa trên cặp ngưỡng vận hành (	au_det = 0.25, tau_anom = 0.53) được hiệu chuẩn trên tập `validation` nhằm kiểm soát tỷ lệ lọt lỗi (**escape rate $\le 2\%$**).
 4. **Lưu vết và quản trị trực quan:** Phục vụ qua REST API (`FastAPI /inspect`), tự động lưu toàn bộ lịch sử kiểm tra vào cơ sở dữ liệu `SQLite`, lưu trữ ảnh bằng chứng đối với sản phẩm `NG`, và hiển thị trên bảng điều khiển `Streamlit` (tích hợp sẵn 11 ảnh mẫu để kiểm thử tức thì).
 
 ---
@@ -77,10 +77,10 @@ Thay vì dùng ngưỡng `0.50` cảm tính, hệ thống quét đường cong �
 
 | Nhánh / Bộ dữ liệu | Ngưỡng vận hành (chọn từ `val`) | Escape Rate trên `test` (Lọt lỗi) | Overkill Rate trên `test` (Báo giả) | Precision (`test`) | Recall (`test`) | F1 (`test`) |
 |---|---:|---:|---:|---:|---:|---:|
-| **PatchCore (`MVTec metal_nut`)** | $\tau_{\text{anom}}^* = 0.53$ | **0.00%** (`0/47`) | **0.00%** (`0/11` test, `4.55%` toàn tập) | **100.00%** | **100.00%** | **1.0000** |
-| **YOLOv8n (`NEU-DET` + nền OK)** | $\tau_{\text{det}}^* = 0.25$ | **0.75%** (`2/266`) | **22.50%** (`18/80`) | **93.62%** | **99.25%** | **0.9635** |
-| *YOLOv8n ngưỡng mặc định* | $\tau_{\text{det}} = 0.50$ | *9.40%* (`25/266`) | *2.50%* (`2/80`) | *99.18%* | *90.60%* | *0.9469* |
-| **Hợp nhất 2 nhánh (Test lỗi mới)** | $\tau_{\text{det}}^* = 0.25, \tau_{\text{anom}}^* = 0.53$ | **0.00%** (trên cả 4 nhóm lỗi ẩn) | **4.55%** | **98.94%** | **100.00%** | **0.9947** |
+| **PatchCore (`MVTec metal_nut`)** | 	au_anom = 0.53 | **0.00%** (`0/47`) | **0.00%** (`0/11` test, `4.55%` toàn tập) | **100.00%** | **100.00%** | **1.0000** |
+| **YOLOv8n (`NEU-DET` + nền OK)** | 	au_det = 0.25 | **0.75%** (`2/266`) | **22.50%** (`18/80`) | **93.62%** | **99.25%** | **0.9635** |
+| *YOLOv8n ngưỡng mặc định* | 	au_det = 0.50 | *9.40%* (`25/266`) | *2.50%* (`2/80`) | *99.18%* | *90.60%* | *0.9469* |
+| **Hợp nhất 2 nhánh (Test lỗi mới)** | 	au_det = 0.25, tau_anom = 0.53 | **0.00%** (trên cả 4 nhóm lỗi ẩn) | **4.55%** | **98.94%** | **100.00%** | **0.9947** |
 
 ### 5.2 Giả lập xuất hiện "Lỗi Mới Chưa Từng Gặp" (Leave-One-Class-Out)
 

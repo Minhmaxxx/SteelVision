@@ -48,7 +48,7 @@
 
 Trên `20` ảnh test của `NEU-DET`, đối chiếu trực tiếp đầu ra của `YOLOv8n (PyTorch)` và [`OnnxYoloDetector`](file:///e:/Vision/src/steelvision/models/detector.py) (tự cài đặt `letterbox`, chuẩn hóa `NCHW`, giải mã anchor `1×10×8400` và `NMS` thuần NumPy):
 
-- **Tỷ lệ đồng thuận phán định (`verdict_agreement_rate` tại $\tau_{\text{det}}^* = 0.25$):** **`100.0%` (`20/20` ảnh)**
+- **Tỷ lệ đồng thuận phán định (`verdict_agreement_rate` tại 	au_det = 0.25):** **`100.0%` (`20/20` ảnh)**
 - **Sai số tuyệt đối trung bình của `max_confidence`:** **`1.0 × 10⁻⁶`**
 - **Sai số tuyệt đối lớn nhất của `max_confidence`:** **`2.0 × 10⁻⁶`** (chỉ lệch ở chữ số thập phân thứ 6 do sai số dấu phẩy động FP32 giữa ATen và ONNX Runtime).
 
@@ -61,7 +61,7 @@ Trên `20` ảnh test của `NEU-DET`, đối chiếu trực tiếp đầu ra c�
 2. **Tiết kiệm 52%–79% bộ nhớ RAM (`1,297 MB → 626 MB` cho cả 2 model; `241 MB` nếu chỉ chạy YOLO):**
    - Loại bỏ hoàn toàn runtime PyTorch + Lightning + Anomalib ở tầng suy luận giúp container Docker ở Phase 7 nhẹ hơn đáng kể và khởi động nhanh.
 3. **Tối ưu kiến trúc "Short-Circuit / Early-Exit" cho Luật hợp nhất `OR`:**
-   - Vì luật quyết định là phép tuyển logic $\text{NG} \iff (\text{det\_conf} \ge \tau_{\text{det}}) \lor (\text{anom\_score} \ge \tau_{\text{anom}})$, khi nhánh `OnnxYoloDetector` (`58.37 ms`) đã phát hiện lỗi quen thuộc vượt ngưỡng $\tau_{\text{det}}^* = 0.25$ (có sẵn tên lớp lỗi và tọa độ bounding box), kết quả hợp nhất **chắc chắn là `NG`**.
+   - Vì luật quyết định là phép tuyển logic $\text{NG} \iff (\text{det\_conf} \ge \tau_{\text{det}}) \lor (\text{anom\_score} \ge \tau_{\text{anom}})$, khi nhánh `OnnxYoloDetector` (`58.37 ms`) đã phát hiện lỗi quen thuộc vượt ngưỡng 	au_det = 0.25 (có sẵn tên lớp lỗi và tọa độ bounding box), kết quả hợp nhất **chắc chắn là `NG`**.
    - Trong chế độ `early_exit=True` (có thể bật/tắt qua tham số API ở Phase 7):
      - Với sản phẩm có lỗi quen thuộc: trả kết quả ngay sau **`~63.8 ms` (`15.7 FPS`, nhanh gấp `4.38×` so với PyTorch E2E `279.6 ms`)** mà **không làm thay đổi bất kỳ phán định OK/NG nào**.
      - Với sản phẩm không có lỗi quen thuộc (ứng viên `OK` hoặc nghi ngờ lỗi mới chưa từng gặp): tự động chạy tiếp nhánh `OnnxAnomalyDetector` (`~114.5 ms`) để kiểm tra an toàn trước khi cho qua.

@@ -29,15 +29,15 @@ Quét lưới ngưỡng trên tập **Validation**, lọc các cặp ngưỡng �
 ### 2.1. Nhánh Anomaly Detection — PatchCore ONNX trên MVTec AD (`metal_nut`)
 
 - Tập dữ liệu (`115` sản phẩm: `93` NG thuộc 4 kiểu lỗi `bent`, `color`, `flip`, `scratch` và `22` OK `good`), chia phân tầng 50/50 thành `val` (`56` ảnh) và `test` (`59` ảnh).
-- Trên tập `val`, thuật toán chọn ngưỡng vận hành **$\tau_{\text{anom}}^* = 0.53$** (`val escape_rate = 0.00%`, `val overkill_rate = 9.09%`).
-- Khi áp ngưỡng **$\tau_{\text{anom}}^* = 0.53$** lên tập **Test độc lập (`59` ảnh: `48` NG, `11` OK)**:
+- Trên tập `val`, thuật toán chọn ngưỡng vận hành **	au_anom = 0.53** (`val escape_rate = 0.00%`, `val overkill_rate = 9.09%`).
+- Khi áp ngưỡng **	au_anom = 0.53** lên tập **Test độc lập (`59` ảnh: `48` NG, `11` OK)**:
   - **Escape rate = `0.00%` (`0/48` lọt lỗi)**
   - **Overkill rate = `0.00%` (`0/11` bắt nhầm trên test; `4.55%` = `1/22` trên toàn tập 115 ảnh)**
   - **Precision = `100.0%`, Recall = `100.0%`, F1 = `1.000`** (`F1 = 0.9947` trên toàn tập).
 
-#### Bảng đánh đổi theo ngưỡng $\tau_{\text{anom}}$ (trên toàn tập 115 sản phẩm `metal_nut`)
+#### Bảng đánh đổi theo ngưỡng 	au_anom (trên toàn tập 115 sản phẩm `metal_nut`)
 
-| Ngưỡng $\tau_{\text{anom}}$ | TP (Bắt đúng NG) | FN (Lọt lỗi) | FP (Loại nhầm OK) | TN (Đạt OK) | **Escape Rate** | **Overkill Rate** | F1-Score | Ghi chú |
+| Ngưỡng 	au_anom | TP (Bắt đúng NG) | FN (Lọt lỗi) | FP (Loại nhầm OK) | TN (Đạt OK) | **Escape Rate** | **Overkill Rate** | F1-Score | Ghi chú |
 |---:|---:|---:|---:|---:|---:|---:|---:|---|
 | 0.35 | 93 | 0 | 21 | 1 | 0.00% | 95.45% | 0.8986 | Quá nhạy |
 | 0.40 | 93 | 0 | 14 | 8 | 0.00% | 63.64% | 0.9300 | |
@@ -56,15 +56,15 @@ Quét lưới ngưỡng trên tập **Validation**, lọc các cặp ngưỡng �
 ### 2.2. Nhánh Object Detection — YOLOv8n (`mosaic=0.0`) trên NEU-DET
 
 - Để đo đồng thời cả **Escape rate** và **Overkill rate** trên bề mặt thép cán nóng NEU-DET (vốn chỉ gồm các ảnh có ít nhất 1 bounding box lỗi), pipeline trích xuất thêm `80` vùng nền thép không lỗi (`OK` crops, tách biệt hoàn toàn với mọi ground-truth box kèm lề an toàn 6 px) trên mỗi tập `val` (`270` NG + `80` OK = `350` sản phẩm) và `test` (`266` NG + `80` OK = `346` sản phẩm).
-- Trên tập `val`, thuật toán chọn ngưỡng vận hành **$\tau_{\text{det}}^* = 0.25$** (`val escape_rate = 1.85% <= 2.0%`, `val overkill_rate = 23.75%`).
-- Khi áp ngưỡng **$\tau_{\text{det}}^* = 0.25$** lên tập **Test độc lập (`266` NG + `80` OK)**:
+- Trên tập `val`, thuật toán chọn ngưỡng vận hành **	au_det = 0.25** (`val escape_rate = 1.85% <= 2.0%`, `val overkill_rate = 23.75%`).
+- Khi áp ngưỡng **	au_det = 0.25** lên tập **Test độc lập (`266` NG + `80` OK)**:
   - **Escape rate = `0.75%` (`2/266` lọt lỗi — đạt mục tiêu ≤ 2%)**
   - **Overkill rate = `22.50%` (`18/80`)**
   - **Precision = `93.62%`, Recall = `99.25%`, F1 = `0.9635`**.
 
-#### Bảng đánh đổi theo ngưỡng $\tau_{\text{det}}$ trên tập Test NEU-DET (`266` NG + `80` OK)
+#### Bảng đánh đổi theo ngưỡng 	au_det trên tập Test NEU-DET (`266` NG + `80` OK)
 
-| Ngưỡng $\tau_{\text{det}}$ | TP | FN (Lọt lỗi) | FP (Loại nhầm) | TN | **Escape Rate** | **Overkill Rate** | F1-Score | Ghi chú |
+| Ngưỡng 	au_det | TP | FN (Lọt lỗi) | FP (Loại nhầm) | TN | **Escape Rate** | **Overkill Rate** | F1-Score | Ghi chú |
 |---:|---:|---:|---:|---:|---:|---:|---:|---|
 | 0.10 | 266 | 0 | 39 | 41 | 0.00% | 48.75% | 0.9317 | Không lọt lỗi, loại nhầm cao |
 | 0.15 | 266 | 0 | 29 | 51 | 0.00% | 36.25% | 0.9483 | |
@@ -77,7 +77,7 @@ Quét lưới ngưỡng trên tập **Validation**, lọc các cặp ngưỡng �
 | 0.60 | 216 | 50 | 2 | 78 | 18.80% | 2.50% | 0.8926 | |
 | 0.70 | 181 | 85 | 0 | 80 | 31.95% | 0.00% | 0.8098 | |
 
-> **Bài học QC quan trọng:** Nếu chọn ngưỡng `0.50` theo thói quen, hệ thống để lọt tới **9.40% (`25/266`)** sản phẩm lỗi. Việc chọn $\tau_{\text{det}}^* = 0.25$ từ đường đánh đổi trên tập validation giúp **giảm 12.5 lần tỷ lệ lọt lỗi** (`9.40% → 0.75%`) và đồng thời đạt đỉnh F1 (`0.9635`).
+> **Bài học QC quan trọng:** Nếu chọn ngưỡng `0.50` theo thói quen, hệ thống để lọt tới **9.40% (`25/266`)** sản phẩm lỗi. Việc chọn 	au_det = 0.25 từ đường đánh đổi trên tập validation giúp **giảm 12.5 lần tỷ lệ lọt lỗi** (`9.40% → 0.75%`) và đồng thời đạt đỉnh F1 (`0.9635`).
 
 ---
 
@@ -100,7 +100,7 @@ Giả lập tình huống dây chuyền xuất hiện một loại lỗi mới m
 
 ### 3.2. Khi hợp nhất Detector + PatchCore (`fusion.py`) trên MVTec `metal_nut`
 
-Ẩn lần lượt từng nhóm lỗi (`bent`, `color`, `flip`, `scratch`) khỏi nhánh Detector và kiểm chứng khả năng bọc lót của nhánh PatchCore (vốn chỉ học từ ảnh `good`) tại $\tau_{\text{anom}}^* = 0.53$:
+Ẩn lần lượt từng nhóm lỗi (`bent`, `color`, `flip`, `scratch`) khỏi nhánh Detector và kiểm chứng khả năng bọc lót của nhánh PatchCore (vốn chỉ học từ ảnh `good`) tại 	au_anom = 0.53:
 
 | Nhóm lỗi chưa từng gặp | Số mẫu lỗi của nhóm | Escape Rate (Detector-only) | FN (Detector-only) | **Escape Rate sau hợp nhất (Detector + PatchCore)** | **FN sau hợp nhất** | Overkill Rate sau hợp nhất |
 |---|---:|---:|---:|---:|---:|---:|
@@ -123,7 +123,7 @@ Giả lập tình huống dây chuyền xuất hiện một loại lỗi mới m
 5. `gaussian_noise`: nhiễu cảm biến camera ($\sigma=18$).
 6. `rotate_5deg`: lệch gá đặt sản phẩm ($+5^\circ$).
 
-### 4.1. Độ bền của YOLOv8n trên tập Test NEU-DET (`266` NG + `80` OK, $\tau_{\text{det}}^* = 0.25$)
+### 4.1. Độ bền của YOLOv8n trên tập Test NEU-DET (`266` NG + `80` OK, 	au_det = 0.25)
 
 | Điều kiện | Class-agnostic AP50 | $\Delta$ AP50 | Box Precision | Box Recall | **Escape Rate** | **Overkill Rate** | Đánh giá độ bền |
 |---|---:|---:|---:|---:|---:|---:|---|
@@ -135,7 +135,7 @@ Giả lập tình huống dây chuyền xuất hiện một loại lỗi mới m
 | `gaussian_blur` | 0.4283 | −0.3210 | 0.6009 | 0.4301 | 3.01% | 45.00% | ❌ Sụt mạnh AP50 (−32.1 điểm) |
 | `gaussian_noise` | 0.0595 | −0.6898 | 0.1735 | 0.1130 | **16.54%** | **91.25%** | ❌ Sụp đổ do nhiễu hạt đè lên texture 200×200 |
 
-### 4.2. Độ bền của PatchCore ONNX trên MVTec `metal_nut` (`115` ảnh, $\tau_{\text{anom}}^* = 0.53$)
+### 4.2. Độ bền của PatchCore ONNX trên MVTec `metal_nut` (`115` ảnh, 	au_anom = 0.53)
 
 | Điều kiện | Image AUROC | $\Delta$ AUROC | **Escape Rate** | **Overkill Rate** | F1-Score | Đánh giá độ bền |
 |---|---:|---:|---:|---:|---:|---|
@@ -149,7 +149,7 @@ Giả lập tình huống dây chuyền xuất hiện một loại lỗi mới m
 
 > **Phát hiện kỹ thuật rất đáng giá cho thiết kế hệ thống (Phase 7):**
 > 1. **Hai mô hình có điểm yếu bổ trợ nhau:** YOLOv8n rất nhạy với `gaussian_blur` (AP50 giảm 32 điểm), trong khi PatchCore gần như miễn nhiễm với `gaussian_blur` (AUROC `0.9980`, escape `1.08%`) nhờ lớp `AvgPool2d(3×3)` làm trơn đặc trưng cục bộ.
-> 2. **Hướng suy biến an toàn (Fail-safe) của PatchCore:** Khi ánh sáng sụt mạnh (`brightness_down`) hoặc cảm biến nhiễu nặng (`gaussian_noise`), thứ tự xếp hạng của PatchCore vẫn giữ rất cao (`AUROC ~ 0.98`), nhưng toàn bộ điểm khoảng cách bị dịch lên trên $\tau_{\text{anom}}^* = 0.53$, khiến mô hình **từ chối toàn bộ (`overkill = 100%, escape = 0%`)** thay vì để lọt hàng lỗi.
+> 2. **Hướng suy biến an toàn (Fail-safe) của PatchCore:** Khi ánh sáng sụt mạnh (`brightness_down`) hoặc cảm biến nhiễu nặng (`gaussian_noise`), thứ tự xếp hạng của PatchCore vẫn giữ rất cao (`AUROC ~ 0.98`), nhưng toàn bộ điểm khoảng cách bị dịch lên trên 	au_anom = 0.53, khiến mô hình **từ chối toàn bộ (`overkill = 100%, escape = 0%`)** thay vì để lọt hàng lỗi.
 > 3. **Hệ quả cho tiền xử lý ở API (`/inspect`):** Cần có bước **kiểm tra chất lượng ảnh đầu vào (Image Quality Gate)** — đo độ sáng trung bình, độ tương phản và độ nét (Laplacian variance) trước khi đưa vào mô hình, để cảnh báo lỗi đèn/camera thay vì báo NG giả hàng loạt.
 
 ---

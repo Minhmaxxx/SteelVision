@@ -138,10 +138,10 @@ và bài test "lỗi chưa từng gặp".
   interpolated `AP50` phục vụ đánh giá độ bền và khác miền.
 - Xây dựng [`src/steelvision/eval/run_qc.py`](file:///e:/Vision/src/steelvision/eval/run_qc.py)
   và cấu hình [`configs/eval.yaml`](file:///e:/Vision/configs/eval.yaml) (`make eval`):
-  - **PatchCore (`MVTec metal_nut`)**: chọn $\tau_{\text{anom}}^* = 0.53$ từ `val` →
+  - **PatchCore (`MVTec metal_nut`)**: chọn 	au_anom = 0.53 từ `val` →
     trên tập `test` đạt **escape rate = `0.00%`**, **overkill rate = `0.00%`** (`4.55%`
     trên toàn tập 115 ảnh, `F1 = 0.9947`).
-  - **YOLOv8n (`NEU-DET` + 80 mẫu nền thép OK mỗi split)**: chọn $\tau_{\text{det}}^* = 0.25$
+  - **YOLOv8n (`NEU-DET` + 80 mẫu nền thép OK mỗi split)**: chọn 	au_det = 0.25
     từ `val` (`escape 1.85%`) → trên tập `test` đạt **escape rate = `0.75%` (`2/266`)**,
     `overkill = 22.50%`, `F1 = 0.9635` (giảm 12.5× tỷ lệ lọt lỗi so với ngưỡng cảm tính
     `0.50` vốn để lọt `9.40%`).

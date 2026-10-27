@@ -8,8 +8,10 @@
   2. **Branch 1 — Supervised Defect Detector (`steelvision.models.detector`):** YOLOv8n (`3,006,818` parameters, `640x640` input, exported to ONNX opset 18, `12.16 MB`) trained to localize and classify 6 known steel surface defect categories.
   3. **Branch 2 — Unsupervised Anomaly Detector (`steelvision.models.anomaly`):** PatchCore with `wide_resnet50_2` backbone (`layers = [layer2, layer3]`, `coreset_sampling_ratio = 0.01`, `num_neighbors = 9`, `256x256` input, exported to ONNX opset 18, `108.27 MB`) trained exclusively on defect-free (`train/good`) images.
   4. **Product Decision Rule (`steelvision.decision.fusion`):** Logical OR gate:
-     $$\text{Verdict} = \text{NG} \iff (\max_i c_i \ge \tau_{\text{det}}) \lor (s_{\text{anom}} \ge \tau_{\text{anom}})$$
-     with operating thresholds calibrated on validation sets (`v1-val-2026-10-26`: $\tau_{\text{det}}^* = 0.25$, $\tau_{\text{anom}}^* = 0.53$).
+     $$`	ext
+Verdict = NG  <=>  (max_det_conf >= tau_det) OR (anom_score >= tau_anom)
+`$$
+     with operating thresholds calibrated on validation sets (`v1-val-2026-10-26`: 	au_det = 0.25, 	au_anom = 0.53).
 - **License:** MIT (code and exported configuration).
 
 ---
@@ -65,10 +67,10 @@ Thresholds selected on validation sets (`val`) and evaluated once on held-out `t
 
 | Branch / Dataset | Selected Threshold (`val`) | Test Escape Rate (FN / Total NG) | Test Overkill Rate (FP / Total OK) | Test Precision | Test Recall | Test F1 |
 |---|---:|---:|---:|---:|---:|---:|
-| **PatchCore (`metal_nut`)** | $\tau_{\text{anom}}^* = 0.53$ | **0.00%** (`0/47`) | **0.00%** (`0/11` test, `4.55%` full) | **100.00%** | **100.00%** | **1.0000** |
-| **YOLOv8n (`NEU-DET` + OK bg)** | $\tau_{\text{det}}^* = 0.25$ | **0.75%** (`2/266`) | **22.50%** (`18/80`) | **93.62%** | **99.25%** | **0.9635** |
-| *YOLOv8n naive default* | $\tau_{\text{det}} = 0.50$ | *9.40%* (`25/266`) | *2.50%* (`2/80`) | *99.18%* | *90.60%* | *0.9469* |
-| **Dual-Branch Fusion (Unseen defect test)** | $\tau_{\text{det}}^* = 0.25, \tau_{\text{anom}}^* = 0.53$ | **0.00%** (across all 4 held-out classes) | **4.55%** | **98.94%** | **100.00%** | **0.9947** |
+| **PatchCore (`metal_nut`)** | 	au_anom = 0.53 | **0.00%** (`0/47`) | **0.00%** (`0/11` test, `4.55%` full) | **100.00%** | **100.00%** | **1.0000** |
+| **YOLOv8n (`NEU-DET` + OK bg)** | 	au_det = 0.25 | **0.75%** (`2/266`) | **22.50%** (`18/80`) | **93.62%** | **99.25%** | **0.9635** |
+| *YOLOv8n naive default* | 	au_det = 0.50 | *9.40%* (`25/266`) | *2.50%* (`2/80`) | *99.18%* | *90.60%* | *0.9469* |
+| **Dual-Branch Fusion (Unseen defect test)** | 	au_det = 0.25, tau_anom = 0.53 | **0.00%** (across all 4 held-out classes) | **4.55%** | **98.94%** | **100.00%** | **0.9947** |
 
 ### 4.4 CPU Latency, Throughput & Memory (`AMD Ryzen 7 5800H`, `batch=1`)
 
